@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,9 +49,15 @@ val navigationItems = listOf(
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    authRepository: AuthRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     val authState: StateFlow<AuthState> = authRepository.authState
+
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.signOut()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,26 +91,42 @@ fun VemorizeApp(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = authState == AuthState.Authenticated,
         drawerContent = {
-            ModalDrawerSheet {
-                Text("Vemorize", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
-                HorizontalDivider()
-                navigationItems.forEach { item ->
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentRoute = navBackStackEntry?.destination?.route
+            if (authState == AuthState.Authenticated) {
+                ModalDrawerSheet {
+                    Text("Vemorize", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+                    HorizontalDivider()
+                    navigationItems.forEach { item ->
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
 
-                    NavigationDrawerItem(
-                        icon = { Icon(item.icon, contentDescription = null) },
-                        label = { Text(item.title) },
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                        NavigationDrawerItem(
+                            icon = { Icon(item.icon, contentDescription = null) },
+                            label = { Text(item.title) },
+                            selected = currentRoute == item.route,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                                scope.launch {
+                                    drawerState.close()
+                                }
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                        label = { Text("Logout") },
+                        selected = false,
+                        onClick = {
+                            viewModel.logout()
                             scope.launch {
                                 drawerState.close()
                             }
@@ -116,25 +139,29 @@ fun VemorizeApp(
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("Vemorize") },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.open()
+                if (authState == AuthState.Authenticated) {
+                    TopAppBar(
+                        title = { Text("Vemorize") },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.open()
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu"
+                                )
                             }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu"
-                            )
                         }
-                    }
-                )
+                    )
+                }
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = { /* TODO */ }) {
-                    Icon(Icons.Default.Home, contentDescription = "Add")
+                if (authState == AuthState.Authenticated) {
+                    FloatingActionButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.Home, contentDescription = "Add")
+                    }
                 }
             }
         ) { innerPadding ->
