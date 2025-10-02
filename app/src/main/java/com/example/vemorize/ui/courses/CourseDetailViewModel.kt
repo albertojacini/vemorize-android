@@ -1,5 +1,6 @@
 package com.example.vemorize.ui.courses
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,23 +26,40 @@ class CourseDetailViewModel @Inject constructor(
     val uiState: StateFlow<CourseDetailUiState> = _uiState.asStateFlow()
 
     init {
+        Log.d(TAG, "CourseDetailViewModel initialized for courseId: $courseId")
         loadCourseDetail()
     }
 
     private fun loadCourseDetail() {
         viewModelScope.launch {
             try {
+                Log.d(TAG, "Loading course detail for: $courseId")
+
                 val course = coursesRepository.getCourseById(courseId)
                 val tree = courseTreeRepository.getCourseTree(courseId)
 
-                if (course != null && tree != null) {
-                    _uiState.value = CourseDetailUiState.Success(course = course, tree = tree)
-                } else {
-                    _uiState.value = CourseDetailUiState.Error("Course or tree not found")
+                when {
+                    course == null -> {
+                        Log.e(TAG, "Course not found for id: $courseId")
+                        _uiState.value = CourseDetailUiState.Error("Course not found for id: $courseId")
+                    }
+                    tree == null -> {
+                        Log.w(TAG, "Tree not found for course: ${course.title}")
+                        _uiState.value = CourseDetailUiState.Error("This course doesn't have any content yet.\n\nAdd some course nodes in Supabase to see them here.")
+                    }
+                    else -> {
+                        Log.d(TAG, "Successfully loaded course and tree. Tree has ${tree.allNodes.size} nodes")
+                        _uiState.value = CourseDetailUiState.Success(course = course, tree = tree)
+                    }
                 }
             } catch (e: Exception) {
-                _uiState.value = CourseDetailUiState.Error(e.message ?: "Unknown error")
+                Log.e(TAG, "Error loading course detail", e)
+                _uiState.value = CourseDetailUiState.Error("Exception: ${e.message ?: "Unknown error"}\n${e.stackTraceToString().take(200)}")
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "CourseDetailViewModel"
     }
 }

@@ -1,5 +1,6 @@
 package com.example.vemorize.data.courses
 
+import android.util.Log
 import com.example.vemorize.domain.model.Course
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,8 @@ class CoursesRepositoryImpl @Inject constructor(
 
     override suspend fun getCourseById(courseId: String): Course? {
         return try {
+            Log.d(TAG, "Fetching course by id: $courseId")
+
             val courses = postgrest
                 .from("courses")
                 .select {
@@ -28,9 +31,22 @@ class CoursesRepositoryImpl @Inject constructor(
                     }
                 }
                 .decodeList<Course>()
-            courses.firstOrNull()
+
+            val course = courses.firstOrNull()
+            if (course != null) {
+                Log.d(TAG, "Found course: ${course.title}")
+            } else {
+                Log.w(TAG, "No course found with id: $courseId")
+            }
+
+            course
         } catch (e: Exception) {
+            Log.e(TAG, "Error fetching course $courseId", e)
             null
         }
+    }
+
+    companion object {
+        private const val TAG = "CoursesRepository"
     }
 }

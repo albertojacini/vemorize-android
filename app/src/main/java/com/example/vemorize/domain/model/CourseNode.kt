@@ -2,6 +2,7 @@ package com.example.vemorize.domain.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class CourseNode(
@@ -26,7 +27,7 @@ data class CourseNode(
     val readingTextLong: String? = null,
     @SerialName("quiz_questions")
     val quizQuestions: List<String>? = null,
-    val data: String? = null, // JSONB stored as string
+    val data: JsonElement? = null, // JSONB - can be any JSON structure
     @SerialName("created_at")
     val createdAt: String
 )
