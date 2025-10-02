@@ -1,10 +1,10 @@
 package com.example.vemorize.data.auth
 
 import com.example.vemorize.domain.model.User
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface AuthRepository {
-    val authState: Flow<AuthState>
+    val authState: StateFlow<AuthState>
 
     suspend fun signUp(email: String, password: String): Result<User>
     suspend fun signIn(email: String, password: String): Result<User>

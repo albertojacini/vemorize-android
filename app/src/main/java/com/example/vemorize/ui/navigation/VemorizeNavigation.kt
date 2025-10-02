@@ -50,7 +50,7 @@ val navigationItems = listOf(
 class AppViewModel @Inject constructor(
     authRepository: AuthRepository
 ) : ViewModel() {
-    val authState: StateFlow<AuthState> = authRepository.authState as StateFlow<AuthState>
+    val authState: StateFlow<AuthState> = authRepository.authState
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
