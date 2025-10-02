@@ -23,7 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.vemorize.data.auth.AuthRepository
 import com.example.vemorize.data.auth.AuthState
 import com.example.vemorize.ui.auth.LoginScreen
-import com.example.vemorize.ui.screens.GalleryScreen
+import com.example.vemorize.ui.courses.CoursesScreen
 import com.example.vemorize.ui.screens.HomeScreen
 import com.example.vemorize.ui.screens.SlideshowScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,13 +37,13 @@ sealed class NavigationItem(
     val icon: ImageVector
 ) {
     data object Home : NavigationItem("home", "Home", Icons.Default.Home)
-    data object Gallery : NavigationItem("gallery", "Gallery", Icons.Default.Settings)
+    data object Courses : NavigationItem("courses", "Courses", Icons.Default.Settings)
     data object Slideshow : NavigationItem("slideshow", "Slideshow", Icons.Default.Info)
 }
 
 val navigationItems = listOf(
     NavigationItem.Home,
-    NavigationItem.Gallery,
+    NavigationItem.Courses,
     NavigationItem.Slideshow
 )
 
@@ -185,8 +185,8 @@ fun VemorizeApp(
                 composable(NavigationItem.Home.route) {
                     HomeScreen()
                 }
-                composable(NavigationItem.Gallery.route) {
-                    GalleryScreen()
+                composable(NavigationItem.Courses.route) {
+                    CoursesScreen()
                 }
                 composable(NavigationItem.Slideshow.route) {
                     SlideshowScreen()
