@@ -15,30 +15,32 @@ Do not include plans for legacy fallbacks unless explicitly asked for.
 - **Authentication**: Supabase Auth
 - **Architecture**: MVVM with Compose
 - **Navigation**: Compose Navigation
-- **Module Structure**: Multi-module
+- **Module Structure**: Single-module (simpler for initial development)
 
-## Module Architecture
-
-The app follows a multi-module structure:
+## Package Architecture
 
 ```
-app/                    # Main application module, Hilt setup, MainActivity
-feature/
-  ├── auth/            # Authentication screens (login, signup)
-  ├── courses/         # Course listing and management
-  ├── learning/        # Learning sessions, reading, quiz
-  ├── chat/            # Chat/conversation features
-  └── settings/        # User preferences
-core/
-  ├── ui/              # Shared Compose components, theme
-  ├── network/         # Supabase client setup
-  ├── model/           # Domain models matching database schema
-  └── common/          # Utilities, extensions
-data/
-  ├── auth/            # Authentication repository
-  ├── courses/         # Courses/nodes repository
-  ├── learning/        # Annotations, navigation, quiz repository
-  └── chat/            # Conversations, messages repository
+app/
+  └── src/main/java/com/example/vemorize/
+      ├── VemorizeApplication.kt
+      ├── MainActivity.kt
+      ├── data/
+      │   ├── auth/                  # Authentication (AuthRepository, AuthState, AuthModule)
+      │   ├── courses/               # Courses/nodes repository
+      │   ├── learning/              # Annotations, navigation, quiz
+      │   └── chat/                  # Conversations, messages
+      ├── domain/
+      │   └── model/                 # Domain models
+      ├── ui/
+      │   ├── navigation/
+      │   ├── theme/
+      │   ├── courses/
+      │   ├── learning/
+      │   ├── chat/
+      │   └── settings/
+      └── core/
+          ├── network/               # Supabase client
+          └── util/
 ```
 
 ## Database Schema (Supabase)
@@ -86,9 +88,6 @@ The app uses a comprehensive Supabase schema with the following main domains:
 # All tests
 ./gradlew test
 
-# Specific module
-./gradlew :feature:auth:test
-
 # Instrumented tests (requires device/emulator)
 ./gradlew connectedAndroidTest
 ```
@@ -108,116 +107,48 @@ The app uses a comprehensive Supabase schema with the following main domains:
 ./gradlew dependencyUpdates
 ```
 
-## Compose & Navigation Patterns
+## Compose & Navigation
 
-### Navigation Structure
-- Use Compose Navigation with type-safe arguments
-- Define navigation graphs per feature module
-- Main navigation graph in `app` module composes feature graphs
-
-### ViewModel Pattern
-```kotlin
-@HiltViewModel
-class CourseListViewModel @Inject constructor(
-    private val coursesRepository: CoursesRepository
-) : ViewModel() {
-    val uiState: StateFlow<UiState> = ...
-}
-```
-
-### UI State Management
-- Use `StateFlow` for UI state in ViewModels
-- Collect state in Composables using `collectAsStateWithLifecycle()`
-- Model UI state as sealed classes/data classes
-
-### Composable Structure
-- Keep Composables small and focused
-- Extract preview-friendly components
-- Use `@Preview` annotations liberally
+- Compose Navigation with type-safe arguments in `ui/navigation/`
+- `@HiltViewModel` + `StateFlow<UiState>` pattern
+- Collect state with `collectAsStateWithLifecycle()`
+- Keep Composables small, use `@Preview`
 
 ## Supabase Integration
 
-### Client Setup
-- Supabase client configured in `core:network` module
-- Inject `SupabaseClient` via Hilt
-- Use Supabase Kotlin SDK for all database operations
+- Client in `core/network/di/NetworkModule.kt`, inject via Hilt
+- Auth: `AuthRepository` in `data/auth/`, session management with Supabase Auth
+- Queries: Postgrest with RLS (auto user_id filtering)
+- Trees: Query via `parent_id` relationships
 
-### Authentication Flow
-- Supabase Auth handles login/signup/session management
-- Store auth state in `AuthRepository`
-- Protect routes with auth checks in navigation
+## Testing
 
-### Database Queries
-- Use Supabase Postgrest for queries
-- Leverage RLS - no need to filter by user_id (handled automatically)
-- Handle tree structures by querying nodes with parent relationships
+- **TDD**: Write test first, minimal scope, happy path only
+- Unit: `src/test/kotlin` - ViewModels with fake repos, mock Supabase
+- UI: `src/androidTest/kotlin` - `ComposeTestRule` for key screens
 
-### Real-time (Future)
-- Supabase real-time can be added for live updates
-- Not required for initial implementation
+## Workflow
 
-## Testing Strategy
+1. Write test → 2. Check SPEC.md → 3. Implement → 4. Compose UI → 5. Wire ViewModel → 6. Add navigation
 
-### Unit Tests (Required)
-- Test ViewModels with fake repositories
-- Test repositories with mock Supabase client
-- Test domain logic in isolation
-- Place in `src/test/kotlin`
+## Dependencies
 
-### Integration Tests
-- Test Supabase queries with test database (optional for now)
-- Focus on critical paths
-
-### UI Tests
-- Compose UI tests for key screens
-- Use `ComposeTestRule` and semantics
-- Place in `src/androidTest/kotlin`
-
-### Test Approach
-- **TDD**: Write test first when possible
-- **Minimal scope**: Test happy path, ignore edge cases initially
-- **Fast feedback**: Prioritize unit tests over instrumented tests
-
-## Development Workflow
-
-1. **Start with test**: Write a failing test for the feature
-2. **Check schema**: Reference SPEC.md and database schema
-3. **Implement**: Build minimal implementation to pass test
-4. **Compose UI**: Build Composable with preview
-5. **Wire ViewModel**: Connect UI state to ViewModel
-6. **Integrate navigation**: Add route to navigation graph
-
-## Migration from XML to Compose
-
-The current codebase has XML-based UI with Navigation Drawer. Migration strategy:
-1. Keep `MainActivity` but replace content with Compose
-2. Convert fragments to Composable screens
-3. Replace Navigation Component XML with Compose Navigation
-4. Remove View Binding after full migration
-5. Convert drawer to Compose ModalNavigationDrawer or NavigationRail
-
-## Key Dependencies (Expected)
-
-Add these to `gradle/libs.versions.toml`:
-- Compose BOM (Material3, Navigation, ViewModel)
-- Hilt (Android, Compose Navigation integration)
-- Supabase Kotlin SDK (postgrest-kt, gotrue-kt, realtime-kt)
-- Coil for image loading (if needed)
-- Kotlin Coroutines & Flow
-- JUnit, Turbine (for testing Flows)
-- Compose UI Test
+- Compose BOM (Material3, Navigation, ViewModel), Hilt
+- Supabase SDK (postgrest-kt, gotrue-kt, realtime-kt)
+- Coroutines, Flow, JUnit, Turbine, Compose UI Test
 
 ## Code Location
 
-- **Feature code**: `feature/{feature-name}/src/main/kotlin/com/example/vemorize/{feature}`
-- **Repositories**: `data/{domain}/src/main/kotlin/com/example/vemorize/data/{domain}`
-- **Models**: `core/model/src/main/kotlin/com/example/vemorize/core/model`
-- **Shared UI**: `core/ui/src/main/kotlin/com/example/vemorize/core/ui`
+`app/src/main/java/com/example/vemorize/`:
+- UI/ViewModels: `ui/{feature}/`
+- Repositories: `data/{domain}/` (e.g., `data/auth/AuthRepository.kt`)
+- Models: `domain/model/`
+- Network: `core/network/`
 
-## Important Notes
+## Notes
 
-- **Voice-first**: UI should support TTS interaction patterns
-- **Tree navigation**: Course nodes form trees - always traverse via parent_id
-- **Stateful annotations**: Progress tracking is mutable and separate from immutable course structure
-- **No offline**: Initial version requires network connection (Supabase only)
-- **UUID everywhere**: All IDs are UUIDs, generate with `UUID.randomUUID()` or use Supabase defaults
+- Voice-first UI with TTS support
+- Tree navigation via `parent_id`
+- Stateful annotations separate from immutable course structure
+- Online-only (Supabase, no offline cache)
+- UUID for all IDs
