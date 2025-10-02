@@ -15,30 +15,36 @@ Do not include plans for legacy fallbacks unless explicitly asked for.
 - **Authentication**: Supabase Auth
 - **Architecture**: MVVM with Compose
 - **Navigation**: Compose Navigation
-- **Module Structure**: Multi-module
+- **Module Structure**: Single-module (simpler for initial development)
 
-## Module Architecture
+## Package Architecture
 
-The app follows a multi-module structure:
+The app uses a single-module structure with organized packages:
 
 ```
-app/                    # Main application module, Hilt setup, MainActivity
-feature/
-  ├── auth/            # Authentication screens (login, signup)
-  ├── courses/         # Course listing and management
-  ├── learning/        # Learning sessions, reading, quiz
-  ├── chat/            # Chat/conversation features
-  └── settings/        # User preferences
-core/
-  ├── ui/              # Shared Compose components, theme
-  ├── network/         # Supabase client setup
-  ├── model/           # Domain models matching database schema
-  └── common/          # Utilities, extensions
-data/
-  ├── auth/            # Authentication repository
-  ├── courses/         # Courses/nodes repository
-  ├── learning/        # Annotations, navigation, quiz repository
-  └── chat/            # Conversations, messages repository
+app/
+  └── src/main/java/com/example/vemorize/
+      ├── VemorizeApplication.kt    # Hilt application
+      ├── MainActivity.kt            # Main entry point
+      ├── ui/
+      │   ├── navigation/            # Navigation setup
+      │   ├── theme/                 # Material theme
+      │   ├── auth/                  # Authentication screens (login, signup)
+      │   ├── courses/               # Course listing and management
+      │   ├── learning/              # Learning sessions, reading, quiz
+      │   ├── chat/                  # Chat/conversation features
+      │   └── settings/              # User preferences
+      ├── data/
+      │   ├── auth/                  # Authentication repository
+      │   ├── courses/               # Courses/nodes repository
+      │   ├── learning/              # Annotations, navigation, quiz repository
+      │   └── chat/                  # Conversations, messages repository
+      ├── domain/
+      │   └── model/                 # Domain models matching database schema
+      ├── core/
+      │   ├── network/               # Supabase client setup
+      │   └── util/                  # Utilities, extensions
+      └── di/                        # Hilt dependency injection modules
 ```
 
 ## Database Schema (Supabase)
@@ -86,9 +92,6 @@ The app uses a comprehensive Supabase schema with the following main domains:
 # All tests
 ./gradlew test
 
-# Specific module
-./gradlew :feature:auth:test
-
 # Instrumented tests (requires device/emulator)
 ./gradlew connectedAndroidTest
 ```
@@ -112,8 +115,8 @@ The app uses a comprehensive Supabase schema with the following main domains:
 
 ### Navigation Structure
 - Use Compose Navigation with type-safe arguments
-- Define navigation graphs per feature module
-- Main navigation graph in `app` module composes feature graphs
+- Define all navigation routes in `ui/navigation/` package
+- Keep navigation logic centralized in VemorizeApp
 
 ### ViewModel Pattern
 ```kotlin
@@ -138,7 +141,7 @@ class CourseListViewModel @Inject constructor(
 ## Supabase Integration
 
 ### Client Setup
-- Supabase client configured in `core:network` module
+- Supabase client configured in `core/network/di/NetworkModule.kt`
 - Inject `SupabaseClient` via Hilt
 - Use Supabase Kotlin SDK for all database operations
 
@@ -209,10 +212,13 @@ Add these to `gradle/libs.versions.toml`:
 
 ## Code Location
 
-- **Feature code**: `feature/{feature-name}/src/main/kotlin/com/example/vemorize/{feature}`
-- **Repositories**: `data/{domain}/src/main/kotlin/com/example/vemorize/data/{domain}`
-- **Models**: `core/model/src/main/kotlin/com/example/vemorize/core/model`
-- **Shared UI**: `core/ui/src/main/kotlin/com/example/vemorize/core/ui`
+All code is in `app/src/main/java/com/example/vemorize/`:
+- **UI Screens**: `ui/{feature-name}/` (e.g., `ui/auth/LoginScreen.kt`)
+- **ViewModels**: `ui/{feature-name}/` (e.g., `ui/auth/LoginViewModel.kt`)
+- **Repositories**: `data/{domain}/` (e.g., `data/auth/AuthRepository.kt`)
+- **Models**: `domain/model/` (e.g., `domain/model/User.kt`)
+- **Network**: `core/network/` (e.g., `core/network/di/NetworkModule.kt`)
+- **DI Modules**: `di/` or within their respective packages
 
 ## Important Notes
 
