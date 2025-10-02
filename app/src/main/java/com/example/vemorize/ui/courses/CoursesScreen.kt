@@ -17,15 +17,22 @@ import com.example.vemorize.ui.theme.VemorizeTheme
 
 @Composable
 fun CoursesScreen(
-    viewModel: CoursesViewModel = hiltViewModel()
+    viewModel: CoursesViewModel = hiltViewModel(),
+    onCourseClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    CoursesContent(uiState = uiState)
+    CoursesContent(
+        uiState = uiState,
+        onCourseClick = onCourseClick
+    )
 }
 
 @Composable
-fun CoursesContent(uiState: CoursesUiState) {
+fun CoursesContent(
+    uiState: CoursesUiState,
+    onCourseClick: (String) -> Unit = {}
+) {
     when (uiState) {
         is CoursesUiState.Loading -> {
             Box(
@@ -53,7 +60,10 @@ fun CoursesContent(uiState: CoursesUiState) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.courses) { course ->
-                        CourseCard(course = course)
+                        CourseCard(
+                            course = course,
+                            onClick = { onCourseClick(course.id) }
+                        )
                     }
                 }
             }
@@ -74,9 +84,13 @@ fun CoursesContent(uiState: CoursesUiState) {
 }
 
 @Composable
-fun CourseCard(course: Course) {
+fun CourseCard(
+    course: Course,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier
@@ -125,7 +139,8 @@ fun CoursesScreenPreview() {
                         updatedAt = "2025-01-01T00:00:00Z"
                     )
                 )
-            )
+            ),
+            onCourseClick = {}
         )
     }
 }
@@ -134,7 +149,10 @@ fun CoursesScreenPreview() {
 @Composable
 fun CoursesScreenLoadingPreview() {
     VemorizeTheme {
-        CoursesContent(uiState = CoursesUiState.Loading)
+        CoursesContent(
+            uiState = CoursesUiState.Loading,
+            onCourseClick = {}
+        )
     }
 }
 
@@ -142,6 +160,9 @@ fun CoursesScreenLoadingPreview() {
 @Composable
 fun CoursesScreenEmptyPreview() {
     VemorizeTheme {
-        CoursesContent(uiState = CoursesUiState.Success(courses = emptyList()))
+        CoursesContent(
+            uiState = CoursesUiState.Success(courses = emptyList()),
+            onCourseClick = {}
+        )
     }
 }

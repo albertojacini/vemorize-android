@@ -17,4 +17,20 @@ class CoursesRepositoryImpl @Inject constructor(
             .decodeList<Course>()
         emit(courses)
     }
+
+    override suspend fun getCourseById(courseId: String): Course? {
+        return try {
+            val courses = postgrest
+                .from("courses")
+                .select {
+                    filter {
+                        eq("id", courseId)
+                    }
+                }
+                .decodeList<Course>()
+            courses.firstOrNull()
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
