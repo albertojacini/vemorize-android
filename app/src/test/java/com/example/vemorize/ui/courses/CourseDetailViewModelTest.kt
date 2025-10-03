@@ -1,8 +1,8 @@
 package com.example.vemorize.ui.courses
 
-import com.example.vemorize.domain.model.Course
-import com.example.vemorize.domain.model.CourseNode
-import com.example.vemorize.domain.model.CourseTree
+import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.model.courses.CourseNode
+import com.example.vemorize.domain.model.courses.CourseTree
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

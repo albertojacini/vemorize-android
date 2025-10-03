@@ -1,6 +1,6 @@
 package com.example.vemorize.data.courses
 
-import com.example.vemorize.domain.model.Course
+import com.example.vemorize.domain.model.courses.Course
 import kotlinx.coroutines.flow.Flow
 
 interface CoursesRepository {

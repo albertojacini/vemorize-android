@@ -1,6 +1,6 @@
 package com.example.vemorize.data.courses
 
-import com.example.vemorize.domain.model.CourseNode
+import com.example.vemorize.domain.model.courses.CourseNode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test

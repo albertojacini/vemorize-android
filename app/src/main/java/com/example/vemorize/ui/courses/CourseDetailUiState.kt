@@ -1,7 +1,7 @@
 package com.example.vemorize.ui.courses
 
-import com.example.vemorize.domain.model.Course
-import com.example.vemorize.domain.model.CourseTree
+import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.model.courses.CourseTree
 
 sealed class CourseDetailUiState {
     data object Loading : CourseDetailUiState()

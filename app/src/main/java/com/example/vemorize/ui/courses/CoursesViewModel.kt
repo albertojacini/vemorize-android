@@ -18,7 +18,7 @@ class CoursesViewModel @Inject constructor(
 
     val uiState: StateFlow<CoursesUiState> = coursesRepository
         .getUserCourses()
-        .map<List<com.example.vemorize.domain.model.Course>, CoursesUiState> { courses ->
+        .map<List<com.example.vemorize.domain.model.courses.Course>, CoursesUiState> { courses ->
             CoursesUiState.Success(courses)
         }
         .catch { error ->

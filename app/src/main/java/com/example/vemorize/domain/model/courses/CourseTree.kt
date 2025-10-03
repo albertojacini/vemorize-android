@@ -1,4 +1,4 @@
-package com.example.vemorize.domain.model
+package com.example.vemorize.domain.model.courses
 
 data class CourseTree(
     val rootNode: CourseNode?,

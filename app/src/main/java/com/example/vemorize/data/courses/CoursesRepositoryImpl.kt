@@ -1,7 +1,7 @@
 package com.example.vemorize.data.courses
 
 import android.util.Log
-import com.example.vemorize.domain.model.Course
+import com.example.vemorize.domain.model.courses.Course
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
