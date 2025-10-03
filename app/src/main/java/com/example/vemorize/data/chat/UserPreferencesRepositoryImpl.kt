@@ -32,23 +32,23 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     private suspend fun createDefaultPreferences(userId: String): UserPreferences {
         val now = Clock.System.now().toString()
-        val preferences = mapOf(
-            "user_id" to userId,
-            "default_tts_model" to "local",
-            "default_speech_speed" to 1.0f,
-            "reading_speech_speed" to 1.0f,
-            "created_at" to now,
-            "updated_at" to now
-        )
 
         return postgrest
             .from("user_preferences")
-            .insert(preferences)
+            .insert(UserPreferences(
+                id = java.util.UUID.randomUUID().toString(),
+                userId = userId,
+                defaultTtsModel = TtsModel.LOCAL,
+                defaultSpeechSpeed = 1.0f,
+                readingSpeechSpeed = 1.0f,
+                createdAt = now,
+                updatedAt = now
+            ))
             .decodeSingle<UserPreferences>()
     }
 
     override suspend fun updateTtsModel(userId: String, ttsModel: TtsModel): UserPreferences {
-        return updatePreference(userId, "default_tts_model", ttsModel.name.lowercase())
+        return updatePreference(userId, "default_tts_model", ttsModel)
     }
 
     override suspend fun updateSpeechSpeed(userId: String, speed: Float): UserPreferences {
@@ -65,14 +65,30 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         value: Any
     ): UserPreferences {
         return try {
+            // Get current preferences first
+            val current = getOrCreatePreferences(userId)
+
+            // Update the specific field
+            val updated = when (field) {
+                "default_tts_model" -> current.copy(
+                    defaultTtsModel = value as TtsModel,
+                    updatedAt = Clock.System.now().toString()
+                )
+                "default_speech_speed" -> current.copy(
+                    defaultSpeechSpeed = value as Float,
+                    updatedAt = Clock.System.now().toString()
+                )
+                "reading_speech_speed" -> current.copy(
+                    readingSpeechSpeed = value as Float,
+                    updatedAt = Clock.System.now().toString()
+                )
+                else -> throw IllegalArgumentException("Unknown field: $field")
+            }
+
+            // Update in database
             postgrest
                 .from("user_preferences")
-                .update(
-                    mapOf(
-                        field to value,
-                        "updated_at" to Clock.System.now().toString()
-                    )
-                ) {
+                .update(updated) {
                     filter {
                         eq("user_id", userId)
                     }

@@ -34,25 +34,39 @@ class ChatViewModel @Inject constructor(
     private fun initializeChat() {
         viewModelScope.launch {
             try {
+                android.util.Log.d(TAG, "Initializing chat...")
+
                 // Initialize chat manager
+                android.util.Log.d(TAG, "Calling chatManager.initialize()")
                 chatManager.initialize()
+                android.util.Log.d(TAG, "ChatManager initialized successfully")
 
                 // Load course if courseId is provided
                 if (courseId.isNotEmpty()) {
+                    android.util.Log.d(TAG, "Loading course: $courseId")
                     val course = coursesRepository.getCourseById(courseId)
                     if (course != null) {
+                        android.util.Log.d(TAG, "Course found, loading into ChatManager")
                         chatManager.loadCourse(course)
                         _uiState.value = ChatUiState.Ready(course = course)
+                        android.util.Log.d(TAG, "Chat initialized successfully with course")
                     } else {
+                        android.util.Log.e(TAG, "Course not found: $courseId")
                         _uiState.value = ChatUiState.Error("Course not found")
                     }
                 } else {
+                    android.util.Log.d(TAG, "No courseId provided, ready without course")
                     _uiState.value = ChatUiState.Ready(course = null)
                 }
             } catch (e: Exception) {
+                android.util.Log.e(TAG, "Failed to initialize chat", e)
                 _uiState.value = ChatUiState.Error(e.message ?: "Failed to initialize chat")
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "ChatViewModel"
     }
 
     fun onEvent(event: ChatUiEvent) {

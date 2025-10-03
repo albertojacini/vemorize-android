@@ -1,5 +1,6 @@
 package com.example.vemorize.domain.chat.managers
 
+import android.util.Log
 import com.example.vemorize.data.chat.UserMemoryRepository
 import com.example.vemorize.domain.model.chat.UserMemory
 import javax.inject.Inject
@@ -17,7 +18,18 @@ class UserMemoryManager(
      * Initialize and load memory
      */
     suspend fun initialize() {
-        currentMemory = userMemoryRepository.getOrCreateMemory(userId)
+        try {
+            Log.d(TAG, "UserMemoryManager.initialize() - userId: $userId")
+            currentMemory = userMemoryRepository.getOrCreateMemory(userId)
+            Log.d(TAG, "UserMemoryManager initialized: $currentMemory")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize UserMemoryManager", e)
+            throw e
+        }
+    }
+
+    companion object {
+        private const val TAG = "UserMemoryManager"
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.example.vemorize.domain.chat
 
+import android.util.Log
 import com.example.vemorize.data.chat.ChatApiClient
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
@@ -50,21 +51,36 @@ class ChatManager(
      */
     suspend fun initialize() {
         try {
+            Log.d(TAG, "ChatManager.initialize() started")
+
             // Initialize managers
+            Log.d(TAG, "Initializing UserPreferencesManager...")
             userPreferencesManager.initialize()
+            Log.d(TAG, "UserPreferencesManager initialized")
+
+            Log.d(TAG, "Initializing UserMemoryManager...")
             userMemoryManager.initialize()
+            Log.d(TAG, "UserMemoryManager initialized")
 
             // Initialize mode handlers
+            Log.d(TAG, "Creating mode handlers...")
             handlers = mapOf(
                 ChatMode.IDLE to IdleModeHandler(chatApiClient, actions, navigationManager, toolRegistry),
                 ChatMode.READING to ReadingModeHandler(chatApiClient, actions, navigationManager, toolRegistry),
                 ChatMode.QUIZ to QuizModeHandler(chatApiClient, actions, navigationManager, toolRegistry)
             )
+            Log.d(TAG, "Mode handlers created")
 
             _isInitialized.value = true
+            Log.d(TAG, "ChatManager initialized successfully")
         } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize ChatManager", e)
             throw IllegalStateException("Failed to initialize ChatManager", e)
         }
+    }
+
+    companion object {
+        private const val TAG = "ChatManager"
     }
 
     /**

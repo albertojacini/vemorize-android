@@ -1,5 +1,6 @@
 package com.example.vemorize.domain.chat.managers
 
+import android.util.Log
 import com.example.vemorize.data.chat.UserPreferencesRepository
 import com.example.vemorize.domain.model.chat.TtsModel
 import com.example.vemorize.domain.model.chat.UserPreferences
@@ -18,7 +19,18 @@ class UserPreferencesManager(
      * Initialize and load preferences
      */
     suspend fun initialize() {
-        currentPreferences = userPreferencesRepository.getOrCreatePreferences(userId)
+        try {
+            Log.d(TAG, "UserPreferencesManager.initialize() - userId: $userId")
+            currentPreferences = userPreferencesRepository.getOrCreatePreferences(userId)
+            Log.d(TAG, "UserPreferencesManager initialized: $currentPreferences")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize UserPreferencesManager", e)
+            throw e
+        }
+    }
+
+    companion object {
+        private const val TAG = "UserPreferencesManager"
     }
 
     /**

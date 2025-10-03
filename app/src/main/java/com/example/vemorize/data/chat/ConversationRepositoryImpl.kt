@@ -37,18 +37,20 @@ class ConversationRepositoryImpl @Inject constructor(
     override suspend fun createConversation(userId: String, courseId: String): Conversation {
         return try {
             val now = Clock.System.now().toString()
-            val conversation = mapOf(
-                "user_id" to userId,
-                "course_id" to courseId,
-                "is_active" to true,
-                "message_count" to 0,
-                "created_at" to now,
-                "updated_at" to now
-            )
 
             postgrest
                 .from("conversations")
-                .insert(conversation)
+                .insert(Conversation(
+                    id = java.util.UUID.randomUUID().toString(),
+                    userId = userId,
+                    courseId = courseId,
+                    summary = null,
+                    messageCount = 0,
+                    createdAt = now,
+                    updatedAt = now,
+                    lastMessageAt = null,
+                    isActive = true
+                ))
                 .decodeSingle<Conversation>()
         } catch (e: Exception) {
             Log.e(TAG, "Error creating conversation", e)
@@ -74,16 +76,13 @@ class ConversationRepositoryImpl @Inject constructor(
 
     override suspend fun saveConversation(conversation: Conversation) {
         try {
+            val updated = conversation.copy(
+                updatedAt = Clock.System.now().toString()
+            )
+
             postgrest
                 .from("conversations")
-                .update(
-                    mapOf(
-                        "summary" to conversation.summary,
-                        "message_count" to conversation.messageCount,
-                        "last_message_at" to conversation.lastMessageAt,
-                        "updated_at" to Clock.System.now().toString()
-                    )
-                ) {
+                .update(updated) {
                     filter {
                         eq("id", conversation.id)
                     }

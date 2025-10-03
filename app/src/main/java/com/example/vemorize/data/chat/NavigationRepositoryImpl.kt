@@ -42,30 +42,35 @@ class NavigationRepositoryImpl @Inject constructor(
         val initialLeafId = "placeholder-leaf-id"
 
         val now = Clock.System.now().toString()
-        val navigation = mapOf(
-            "user_id" to userId,
-            "course_id" to courseId,
-            "current_leaf_id" to initialLeafId,
-            "created_at" to now,
-            "updated_at" to now
-        )
 
         return postgrest
             .from("navigation")
-            .insert(navigation)
+            .insert(Navigation(
+                id = java.util.UUID.randomUUID().toString(),
+                userId = userId,
+                courseId = courseId,
+                currentLeafId = initialLeafId,
+                createdAt = now,
+                updatedAt = now
+            ))
             .decodeSingle<Navigation>()
     }
 
     override suspend fun updateCurrentLeaf(navigationId: String, leafId: String): Navigation {
         return try {
+            // Get current navigation
+            val current = getNavigationById(navigationId)
+                ?: throw IllegalStateException("Navigation not found: $navigationId")
+
+            // Update
+            val updated = current.copy(
+                currentLeafId = leafId,
+                updatedAt = Clock.System.now().toString()
+            )
+
             postgrest
                 .from("navigation")
-                .update(
-                    mapOf(
-                        "current_leaf_id" to leafId,
-                        "updated_at" to Clock.System.now().toString()
-                    )
-                ) {
+                .update(updated) {
                     filter {
                         eq("id", navigationId)
                     }
