@@ -27,8 +27,8 @@ import androidx.navigation.navArgument
 import com.example.vemorize.ui.auth.LoginScreen
 import com.example.vemorize.ui.courses.CourseDetailScreen
 import com.example.vemorize.ui.courses.CoursesScreen
+import com.example.vemorize.ui.chat.ChatScreen
 import com.example.vemorize.ui.screens.HomeScreen
-import com.example.vemorize.ui.screens.SlideshowScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -41,13 +41,13 @@ sealed class NavigationItem(
 ) {
     data object Home : NavigationItem("home", "Home", Icons.Default.Home)
     data object Courses : NavigationItem("courses", "Courses", Icons.Default.Settings)
-    data object Slideshow : NavigationItem("slideshow", "Slideshow", Icons.Default.Info)
+    data object Chat : NavigationItem("chat", "Chat", Icons.Default.Info)
 }
 
 val navigationItems = listOf(
     NavigationItem.Home,
     NavigationItem.Courses,
-    NavigationItem.Slideshow
+    NavigationItem.Chat
 )
 
 @HiltViewModel
@@ -203,8 +203,16 @@ fun VemorizeApp(
                 ) {
                     CourseDetailScreen()
                 }
-                composable(NavigationItem.Slideshow.route) {
-                    SlideshowScreen()
+                composable(NavigationItem.Chat.route) {
+                    ChatScreen()
+                }
+                composable(
+                    route = "chat/{courseId}",
+                    arguments = listOf(
+                        navArgument("courseId") { type = NavType.StringType }
+                    )
+                ) {
+                    ChatScreen()
                 }
             }
         }
