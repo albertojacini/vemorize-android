@@ -22,7 +22,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.vemorize.data.auth.AuthRepository
 import com.example.vemorize.data.auth.AuthState
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.vemorize.ui.auth.LoginScreen
+import com.example.vemorize.ui.courses.CourseDetailScreen
 import com.example.vemorize.ui.courses.CoursesScreen
 import com.example.vemorize.ui.screens.HomeScreen
 import com.example.vemorize.ui.screens.SlideshowScreen
@@ -186,7 +189,19 @@ fun VemorizeApp(
                     HomeScreen()
                 }
                 composable(NavigationItem.Courses.route) {
-                    CoursesScreen()
+                    CoursesScreen(
+                        onCourseClick = { courseId ->
+                            navController.navigate("courseDetail/$courseId")
+                        }
+                    )
+                }
+                composable(
+                    route = "courseDetail/{courseId}",
+                    arguments = listOf(
+                        navArgument("courseId") { type = NavType.StringType }
+                    )
+                ) {
+                    CourseDetailScreen()
                 }
                 composable(NavigationItem.Slideshow.route) {
                     SlideshowScreen()

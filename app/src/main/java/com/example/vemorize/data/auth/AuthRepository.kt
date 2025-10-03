@@ -1,6 +1,6 @@
 package com.example.vemorize.data.auth
 
-import com.example.vemorize.domain.model.User
+import com.example.vemorize.domain.model.auth.User
 import kotlinx.coroutines.flow.StateFlow
 
 interface AuthRepository {
