@@ -84,11 +84,24 @@ class VoiceInputManager(private val context: Context) {
                     Log.e(TAG, "Speech recognition error: $error")
                     clearTimeout()
                     _isListening.value = false
-                    val errorMsg = getErrorMessage(error)
-                    _error.value = if (error == SpeechRecognizer.ERROR_CLIENT) {
-                        "Speech recognition service not available. Please install Google app or use a device with Google Play Services."
-                    } else {
-                        errorMsg
+
+                    // Don't show ERROR_NO_MATCH or ERROR_SPEECH_TIMEOUT as errors
+                    // These are normal when audio isn't clear or no speech detected
+                    when (error) {
+                        SpeechRecognizer.ERROR_NO_MATCH -> {
+                            Log.d(TAG, "No speech match - audio not clear enough")
+                            _error.value = null
+                        }
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
+                            Log.d(TAG, "Speech timeout - no audio detected")
+                            _error.value = null
+                        }
+                        SpeechRecognizer.ERROR_CLIENT -> {
+                            _error.value = "Speech recognition service not available. Please install Google app or use a device with Google Play Services."
+                        }
+                        else -> {
+                            _error.value = getErrorMessage(error)
+                        }
                     }
                 }
 
