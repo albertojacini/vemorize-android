@@ -14,7 +14,11 @@ sealed class ChatUiState {
         val messages: List<Message> = emptyList(),
         val currentMode: ChatMode = ChatMode.IDLE,
         val isProcessing: Boolean = false,
-        val userInput: String = ""
+        val userInput: String = "",
+        val isListening: Boolean = false,
+        val isSpeaking: Boolean = false,
+        val partialTranscript: String? = null,
+        val voiceError: String? = null
     ) : ChatUiState()
     data class Error(val message: String) : ChatUiState()
 }
@@ -29,4 +33,7 @@ sealed class ChatUiEvent {
     object NavigateNext : ChatUiEvent()
     object NavigatePrevious : ChatUiEvent()
     object StartNewConversation : ChatUiEvent()
+    object ToggleVoiceListening : ChatUiEvent()
+    object StopVoiceOutput : ChatUiEvent()
+    object ClearVoiceError : ChatUiEvent()
 }

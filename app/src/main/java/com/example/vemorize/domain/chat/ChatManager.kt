@@ -198,6 +198,11 @@ class ChatManager(
     fun getPreferences(): UserPreferences? = userPreferencesManager.getCurrent()
 
     /**
+     * Get actions instance for command parsing
+     */
+    fun getActions(): Actions = actions
+
+    /**
      * Update TTS model
      */
     suspend fun updateTtsModel(ttsModel: TtsModel) {
