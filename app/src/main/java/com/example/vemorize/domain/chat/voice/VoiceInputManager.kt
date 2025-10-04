@@ -3,6 +3,8 @@ package com.example.vemorize.domain.chat.voice
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -18,6 +20,8 @@ import java.util.Locale
 class VoiceInputManager(private val context: Context) {
 
     private var speechRecognizer: SpeechRecognizer? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private var timeoutRunnable: Runnable? = null
 
     private val _isListening = MutableStateFlow(false)
     val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
@@ -35,15 +39,26 @@ class VoiceInputManager(private val context: Context) {
      * Initialize the speech recognizer
      */
     fun initialize() {
+        // Note: SpeechRecognizer.isRecognitionAvailable() can return false even when
+        // speech recognition is available. We'll try to create the recognizer anyway
+        // and handle actual errors when starting to listen.
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-            _error.value = "Speech recognition not available on this device"
+            Log.w(TAG, "SpeechRecognizer.isRecognitionAvailable() returned false, but will try anyway")
+        }
+
+        val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
+        if (recognizer == null) {
+            Log.e(TAG, "createSpeechRecognizer returned null!")
+            _error.value = "Speech recognizer creation failed - device may not support it"
             return
         }
 
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+        Log.d(TAG, "SpeechRecognizer created successfully")
+        speechRecognizer = recognizer.apply {
             setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
                     Log.d(TAG, "Ready for speech")
+                    clearTimeout()
                     _isListening.value = true
                     _error.value = null
                 }
@@ -67,8 +82,14 @@ class VoiceInputManager(private val context: Context) {
 
                 override fun onError(error: Int) {
                     Log.e(TAG, "Speech recognition error: $error")
+                    clearTimeout()
                     _isListening.value = false
-                    _error.value = getErrorMessage(error)
+                    val errorMsg = getErrorMessage(error)
+                    _error.value = if (error == SpeechRecognizer.ERROR_CLIENT) {
+                        "Speech recognition service not available. Please install Google app or use a device with Google Play Services."
+                    } else {
+                        errorMsg
+                    }
                 }
 
                 override fun onResults(results: Bundle?) {
@@ -106,8 +127,14 @@ class VoiceInputManager(private val context: Context) {
      */
     fun startListening(language: String = "en-US") {
         if (speechRecognizer == null) {
+            Log.e(TAG, "Speech recognizer is null, attempting to recreate")
             _error.value = "Speech recognizer not initialized"
-            return
+            // Try to reinitialize
+            initialize()
+            if (speechRecognizer == null) {
+                _error.value = "Failed to initialize speech recognizer"
+                return
+            }
         }
 
         if (_isListening.value) {
@@ -128,7 +155,21 @@ class VoiceInputManager(private val context: Context) {
         _error.value = null
 
         Log.d(TAG, "Starting speech recognition (language: $language)")
-        speechRecognizer?.startListening(intent)
+        try {
+            speechRecognizer?.startListening(intent)
+            Log.d(TAG, "startListening() called successfully")
+
+            // Set timeout to detect if service doesn't respond
+            timeoutRunnable = Runnable {
+                Log.e(TAG, "Speech recognition timeout - service did not respond")
+                _isListening.value = false
+                _error.value = "Speech recognition service not available on this device. Google app or Google Play Services may be missing."
+            }
+            handler.postDelayed(timeoutRunnable!!, 3000) // 3 second timeout
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start listening", e)
+            _error.value = "Failed to start speech recognition: ${e.message}"
+        }
     }
 
     /**
@@ -173,9 +214,20 @@ class VoiceInputManager(private val context: Context) {
      */
     fun destroy() {
         Log.d(TAG, "Destroying VoiceInputManager")
+        clearTimeout()
         speechRecognizer?.destroy()
         speechRecognizer = null
         _isListening.value = false
+    }
+
+    /**
+     * Clear the timeout callback
+     */
+    private fun clearTimeout() {
+        timeoutRunnable?.let {
+            handler.removeCallbacks(it)
+            timeoutRunnable = null
+        }
     }
 
     private fun getErrorMessage(error: Int): String {

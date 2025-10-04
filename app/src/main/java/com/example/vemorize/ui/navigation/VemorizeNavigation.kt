@@ -161,7 +161,12 @@ fun VemorizeApp(
                 }
             },
             floatingActionButton = {
-                if (authState == AuthState.Authenticated) {
+                // Hide FAB on chat screens (they have their own voice FAB)
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                val isChatScreen = currentRoute == NavigationItem.Chat.route || currentRoute?.startsWith("chat/") == true
+
+                if (authState == AuthState.Authenticated && !isChatScreen) {
                     FloatingActionButton(onClick = { /* TODO */ }) {
                         Icon(Icons.Default.Home, contentDescription = "Add")
                     }

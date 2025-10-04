@@ -1,5 +1,7 @@
 package com.example.vemorize.ui.chat
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +32,17 @@ fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Request microphone permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Permission result handled
+    }
+
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+    }
 
     ChatScreenContent(
         uiState = uiState,
@@ -318,21 +332,25 @@ fun VoiceFab(
 
     val icon = when {
         isListening -> Icons.Default.Close
-        isSpeaking -> Icons.Default.Settings  // Using Settings icon temporarily
-        else -> Icons.Default.Info  // Using Info icon temporarily
+        isSpeaking -> Icons.Default.Phone
+        else -> Icons.Default.Phone  // Using Phone temporarily (mic icon not in default set)
     }
 
     FloatingActionButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.size(72.dp),
         containerColor = backgroundColor,
-        contentColor = contentColor
+        contentColor = contentColor,
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 8.dp,
+            pressedElevation = 12.dp
+        )
     ) {
         if (isProcessing) {
             CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(32.dp),
                 color = contentColor,
-                strokeWidth = 2.dp
+                strokeWidth = 3.dp
             )
         } else {
             Icon(
@@ -341,7 +359,8 @@ fun VoiceFab(
                     isListening -> "Stop listening"
                     isSpeaking -> "Speaking"
                     else -> "Start voice input"
-                }
+                },
+                modifier = Modifier.size(32.dp)
             )
         }
     }

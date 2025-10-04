@@ -217,7 +217,6 @@ class ChatViewModel @Inject constructor(
 
     private fun toggleVoiceListening() {
         if (!::voiceInputManager.isInitialized) {
-            android.util.Log.w(TAG, "Voice input manager not initialized")
             return
         }
 
