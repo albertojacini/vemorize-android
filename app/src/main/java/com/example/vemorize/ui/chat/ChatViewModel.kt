@@ -55,22 +55,28 @@ class ChatViewModel @Inject constructor(
                 // Initialize voice managers
                 initializeVoice()
 
-                // Load course if courseId is provided
-                if (courseId.isNotEmpty()) {
-                    android.util.Log.d(TAG, "Loading course: $courseId")
-                    val course = coursesRepository.getCourseById(courseId)
-                    if (course != null) {
-                        android.util.Log.d(TAG, "Course found, loading into ChatManager")
-                        chatManager.loadCourse(course)
-                        _uiState.value = ChatUiState.Ready(course = course)
-                        android.util.Log.d(TAG, "Chat initialized successfully with course")
-                    } else {
+                // Load course
+                val course = if (courseId.isNotEmpty()) {
+                    android.util.Log.d(TAG, "Loading course by ID: $courseId")
+                    coursesRepository.getCourseById(courseId)
+                } else {
+                    android.util.Log.d(TAG, "No courseId provided, loading latest course")
+                    coursesRepository.getLatestCourse()
+                }
+
+                if (course != null) {
+                    android.util.Log.d(TAG, "Course found: ${course.title}, loading into ChatManager")
+                    chatManager.loadCourse(course)
+                    _uiState.value = ChatUiState.Ready(course = course)
+                    android.util.Log.d(TAG, "Chat initialized successfully with course")
+                } else {
+                    if (courseId.isNotEmpty()) {
                         android.util.Log.e(TAG, "Course not found: $courseId")
                         _uiState.value = ChatUiState.Error("Course not found")
+                    } else {
+                        android.util.Log.w(TAG, "No courses available for user")
+                        _uiState.value = ChatUiState.Ready(course = null)
                     }
-                } else {
-                    android.util.Log.d(TAG, "No courseId provided, ready without course")
-                    _uiState.value = ChatUiState.Ready(course = null)
                 }
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Failed to initialize chat", e)

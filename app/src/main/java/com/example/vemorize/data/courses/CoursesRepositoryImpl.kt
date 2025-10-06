@@ -46,6 +46,32 @@ class CoursesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLatestCourse(): Course? {
+        return try {
+            Log.d(TAG, "Fetching latest course")
+
+            val courses = postgrest
+                .from("courses")
+                .select {
+                    order(column = "updated_at", order = io.github.jan.supabase.postgrest.query.Order.DESCENDING)
+                    limit(1)
+                }
+                .decodeList<Course>()
+
+            val course = courses.firstOrNull()
+            if (course != null) {
+                Log.d(TAG, "Found latest course: ${course.title}")
+            } else {
+                Log.w(TAG, "No courses found for user")
+            }
+
+            course
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching latest course", e)
+            null
+        }
+    }
+
     companion object {
         private const val TAG = "CoursesRepository"
     }
