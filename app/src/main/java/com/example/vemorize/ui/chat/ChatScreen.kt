@@ -23,8 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.border
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.vemorize.domain.model.chat.Message
-import com.example.vemorize.domain.model.chat.MessageType
 import com.example.vemorize.ui.theme.VemorizeTheme
 
 @Composable
@@ -183,8 +181,8 @@ fun ChatScreenContent(
                                 contentPadding = PaddingValues(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(uiState.messages) { message ->
-                                    MessageBubble(message)
+                                items(uiState.voiceExchangeMessages) { voiceExchangeMessage ->
+                                    MessageBubble(voiceExchangeMessage)
                                 }
                             }
                         }
@@ -263,8 +261,8 @@ fun ChatScreenContent(
 }
 
 @Composable
-fun MessageBubble(message: Message) {
-    val isUser = message.type == MessageType.HUMAN
+fun MessageBubble(voiceExchangeMessage: VoiceExchangeMessage) {
+    val isUser = voiceExchangeMessage.isFromUser
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -296,7 +294,7 @@ fun MessageBubble(message: Message) {
                 )
         ) {
             Text(
-                text = message.content,
+                text = voiceExchangeMessage.content,
                 modifier = Modifier.padding(12.dp),
                 color = if (isUser) {
                     MaterialTheme.colorScheme.onPrimary
@@ -446,7 +444,7 @@ fun ChatScreenPreview() {
         ChatScreenContent(
             uiState = ChatUiState.Ready(
                 course = null,
-                messages = emptyList()
+                voiceExchangeMessages = emptyList()
             ),
             onEvent = {}
         )

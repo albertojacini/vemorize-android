@@ -170,8 +170,13 @@ class ChatViewModel @Inject constructor(
             try {
                 val currentState = _uiState.value as? ChatUiState.Ready ?: return@launch
 
-                // Update UI to show processing
-                _uiState.value = currentState.copy(isProcessing = true, partialTranscript = null)
+                // Add user voice input to voice exchange messages
+                val userVoiceExchangeMessage = VoiceExchangeMessage(content = voiceInput, isFromUser = true)
+                _uiState.value = currentState.copy(
+                    isProcessing = true,
+                    partialTranscript = null,
+                    voiceExchangeMessages = currentState.voiceExchangeMessages + userVoiceExchangeMessage
+                )
 
                 android.util.Log.d(TAG, "Processing voice command: $voiceInput")
 
@@ -179,6 +184,10 @@ class ChatViewModel @Inject constructor(
                 val result = commandParser.parseAndExecute(voiceInput)
 
                 android.util.Log.d(TAG, "Command result: ${result.message}")
+
+                // Add system response to voice exchange messages
+                val systemVoiceExchangeMessage = VoiceExchangeMessage(content = result.message, isFromUser = false)
+                val updatedState = _uiState.value as? ChatUiState.Ready ?: return@launch
 
                 // Speak the response
                 if (result.success && result.message.isNotBlank()) {
@@ -193,10 +202,11 @@ class ChatViewModel @Inject constructor(
                 android.util.Log.d(TAG, "Syncing UI mode to actual mode: $actualMode")
 
                 // Update UI
-                _uiState.value = currentState.copy(
+                _uiState.value = updatedState.copy(
                     isProcessing = false,
                     voiceError = if (result.success) null else result.message,
-                    currentMode = actualMode  // Sync the mode with NavigationManager
+                    currentMode = actualMode,  // Sync the mode with NavigationManager
+                    voiceExchangeMessages = updatedState.voiceExchangeMessages + systemVoiceExchangeMessage
                 )
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error processing voice command", e)
@@ -268,19 +278,26 @@ class ChatViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Update UI to show processing
-                _uiState.value = currentState.copy(isProcessing = true)
+                // Add user text input to voice exchange messages
+                val userVoiceExchangeMessage = VoiceExchangeMessage(content = message, isFromUser = true)
+                _uiState.value = currentState.copy(
+                    isProcessing = true,
+                    voiceExchangeMessages = currentState.voiceExchangeMessages + userVoiceExchangeMessage
+                )
 
                 // Send message to chat manager
                 val response = chatManager.handleInput(message)
 
-                // Update UI with response
-                _uiState.value = currentState.copy(
-                    isProcessing = false,
-                    userInput = ""
-                )
+                // Add system response to voice exchange messages
+                val systemVoiceExchangeMessage = VoiceExchangeMessage(content = response.message, isFromUser = false)
+                val updatedState = _uiState.value as? ChatUiState.Ready ?: return@launch
 
-                // TODO: Add message to UI list (need to fetch from repository)
+                // Update UI with response
+                _uiState.value = updatedState.copy(
+                    isProcessing = false,
+                    userInput = "",
+                    voiceExchangeMessages = updatedState.voiceExchangeMessages + systemVoiceExchangeMessage
+                )
             } catch (e: Exception) {
                 _uiState.value = ChatUiState.Error(e.message ?: "Failed to send message")
             }
@@ -329,7 +346,7 @@ class ChatViewModel @Inject constructor(
             try {
                 chatManager.startNewConversation()
                 val currentState = _uiState.value as? ChatUiState.Ready ?: return@launch
-                _uiState.value = currentState.copy(messages = emptyList())
+                _uiState.value = currentState.copy(voiceExchangeMessages = emptyList())
             } catch (e: Exception) {
                 _uiState.value = ChatUiState.Error(e.message ?: "Failed to start new conversation")
             }

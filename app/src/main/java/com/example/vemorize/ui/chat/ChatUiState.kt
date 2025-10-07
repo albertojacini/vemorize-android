@@ -1,7 +1,6 @@
 package com.example.vemorize.ui.chat
 
 import com.example.vemorize.domain.model.chat.ChatMode
-import com.example.vemorize.domain.model.chat.Message
 import com.example.vemorize.domain.model.courses.Course
 
 /**
@@ -11,7 +10,7 @@ sealed class ChatUiState {
     object Loading : ChatUiState()
     data class Ready(
         val course: Course?,
-        val messages: List<Message> = emptyList(),
+        val voiceExchangeMessages: List<VoiceExchangeMessage> = emptyList(),
         val currentMode: ChatMode = ChatMode.IDLE,
         val isProcessing: Boolean = false,
         val userInput: String = "",
