@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vemorize.domain.model.chat.Message
@@ -78,30 +79,45 @@ fun ChatScreenContent(
                     Column(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        // Course header
-                        if (uiState.course != null) {
-                            Surface(
-                                tonalElevation = 2.dp,
-                                modifier = Modifier.fillMaxWidth()
+                        // Course header (DEBUG: Always visible)
+                        Surface(
+                            tonalElevation = 2.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(3.dp, Color.Cyan)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
-                                ) {
-                                    Text(
-                                        text = uiState.course.title,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text(
-                                        text = "Mode: ${uiState.currentMode.name}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                Text(
+                                    text = "COURSE HEADER",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Cyan
+                                )
+                                Text(
+                                    text = uiState.course?.title ?: "[No Course]",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "Mode: ${uiState.currentMode.name}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
 
-                        // Voice status banner
-                        if (uiState.isListening || uiState.isSpeaking || uiState.partialTranscript != null) {
+                        // Voice status banner (DEBUG: Always visible)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(3.dp, Color.Green)
+                        ) {
+                            Text(
+                                text = "VOICE STATUS BANNER",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Green,
+                                modifier = Modifier.padding(4.dp)
+                            )
                             VoiceStatusBanner(
                                 isListening = uiState.isListening,
                                 isSpeaking = uiState.isSpeaking,
@@ -109,8 +125,18 @@ fun ChatScreenContent(
                             )
                         }
 
-                        // Voice error banner
-                        if (uiState.voiceError != null) {
+                        // Voice error banner (DEBUG: Always visible)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(3.dp, Color.Red)
+                        ) {
+                            Text(
+                                text = "VOICE ERROR BANNER",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Red,
+                                modifier = Modifier.padding(4.dp)
+                            )
                             Surface(
                                 color = MaterialTheme.colorScheme.errorContainer,
                                 modifier = Modifier.fillMaxWidth()
@@ -121,7 +147,7 @@ fun ChatScreenContent(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = uiState.voiceError,
+                                        text = uiState.voiceError ?: "[No Error]",
                                         color = MaterialTheme.colorScheme.onErrorContainer,
                                         style = MaterialTheme.typography.bodySmall,
                                         modifier = Modifier.weight(1f)
@@ -137,63 +163,99 @@ fun ChatScreenContent(
                             }
                         }
 
-                        // Messages list
-                        LazyColumn(
+                        // Messages list (DEBUG: bordered)
+                        Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                .fillMaxWidth()
+                                .border(3.dp, Color.Magenta)
                         ) {
-                            items(uiState.messages) { message ->
-                                MessageBubble(message)
+                            Text(
+                                text = "MESSAGES LIST",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Magenta,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                            LazyColumn(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(uiState.messages) { message ->
+                                    MessageBubble(message)
+                                }
                             }
                         }
 
-                        // Input area
+                        // Input area (DEBUG: bordered)
                         Surface(
                             tonalElevation = 3.dp,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(3.dp, Color.Yellow)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                OutlinedTextField(
-                                    value = uiState.userInput,
-                                    onValueChange = { onEvent(ChatUiEvent.UpdateInput(it)) },
-                                    modifier = Modifier.weight(1f),
-                                    placeholder = { Text("Type a message...") },
-                                    enabled = !uiState.isProcessing && !uiState.isListening
+                            Column {
+                                Text(
+                                    text = "INPUT AREA",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Yellow,
+                                    modifier = Modifier.padding(4.dp)
                                 )
-                                IconButton(
-                                    onClick = {
-                                        if (uiState.userInput.isNotBlank()) {
-                                            onEvent(ChatUiEvent.SendMessage(uiState.userInput))
-                                        }
-                                    },
-                                    enabled = !uiState.isProcessing && uiState.userInput.isNotBlank() && !uiState.isListening
+                                Row(
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Send, contentDescription = "Send")
+                                    OutlinedTextField(
+                                        value = uiState.userInput,
+                                        onValueChange = { onEvent(ChatUiEvent.UpdateInput(it)) },
+                                        modifier = Modifier.weight(1f),
+                                        placeholder = { Text("Type a message...") },
+                                        enabled = !uiState.isProcessing && !uiState.isListening
+                                    )
+                                    IconButton(
+                                        onClick = {
+                                            if (uiState.userInput.isNotBlank()) {
+                                                onEvent(ChatUiEvent.SendMessage(uiState.userInput))
+                                            }
+                                        },
+                                        enabled = !uiState.isProcessing && uiState.userInput.isNotBlank() && !uiState.isListening
+                                    ) {
+                                        Icon(Icons.Default.Send, contentDescription = "Send")
+                                    }
                                 }
                             }
                         }
                     }
 
-                    // Floating microphone button
-                    VoiceFab(
-                        isListening = uiState.isListening,
-                        isSpeaking = uiState.isSpeaking,
-                        isProcessing = uiState.isProcessing,
-                        onClick = { onEvent(ChatUiEvent.ToggleVoiceListening) },
-                        onLongClick = { onEvent(ChatUiEvent.StopVoiceOutput) },
+                    // Floating microphone button (DEBUG: bordered)
+                    Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(16.dp)
-                    )
+                            .border(3.dp, Color.Blue)
+                    ) {
+                        Column {
+                            Text(
+                                text = "VOICE FAB",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Blue,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                            VoiceFab(
+                                isListening = uiState.isListening,
+                                isSpeaking = uiState.isSpeaking,
+                                isProcessing = uiState.isProcessing,
+                                onClick = { onEvent(ChatUiEvent.ToggleVoiceListening) },
+                                onLongClick = { onEvent(ChatUiEvent.StopVoiceOutput) },
+                                modifier = Modifier
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -220,7 +282,18 @@ fun MessageBubble(message: Message) {
                 bottomStart = if (isUser) 16.dp else 4.dp,
                 bottomEnd = if (isUser) 4.dp else 16.dp
             ),
-            modifier = Modifier.widthIn(max = 280.dp)
+            modifier = Modifier
+                .widthIn(max = 280.dp)
+                .border(
+                    2.dp,
+                    if (isUser) Color(0xFFFF6B6B) else Color(0xFF4ECDC4),
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = if (isUser) 16.dp else 4.dp,
+                        bottomEnd = if (isUser) 4.dp else 16.dp
+                    )
+                )
         ) {
             Text(
                 text = message.content,
@@ -257,7 +330,7 @@ fun VoiceStatusBanner(
         isSpeaking -> "Speaking..."
         isListening && partialTranscript.isNullOrBlank() -> "Listening..."
         isListening -> partialTranscript ?: "Listening..."
-        else -> ""
+        else -> "[Inactive]"
     }
 
     Surface(
