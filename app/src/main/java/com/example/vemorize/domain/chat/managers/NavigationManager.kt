@@ -1,5 +1,6 @@
 package com.example.vemorize.domain.chat.managers
 
+import android.util.Log
 import com.example.vemorize.data.chat.NavigationRepository
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.model.chat.ChatMode
@@ -38,7 +39,13 @@ class NavigationManager(
      * Switch to a mode
      */
     fun switchToMode(newMode: ChatMode) {
+        Log.d(TAG, "Switching mode from $mode to $newMode")
         mode = newMode
+        Log.d(TAG, "Mode switched successfully to $mode")
+    }
+
+    companion object {
+        private const val TAG = "NavigationManager"
     }
 
     /**

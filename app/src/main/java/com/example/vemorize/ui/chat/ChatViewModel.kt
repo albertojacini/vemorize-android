@@ -187,10 +187,15 @@ class ChatViewModel @Inject constructor(
                     voiceOutputManager.speak(result.message, speed)
                 }
 
+                // Sync current mode from NavigationManager (in case voice command changed it)
+                val actualMode = chatManager.getCurrentModeFromNavigation()
+                android.util.Log.d(TAG, "Syncing UI mode to actual mode: $actualMode")
+
                 // Update UI
                 _uiState.value = currentState.copy(
                     isProcessing = false,
-                    voiceError = if (result.success) null else result.message
+                    voiceError = if (result.success) null else result.message,
+                    currentMode = actualMode  // Sync the mode with NavigationManager
                 )
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error processing voice command", e)

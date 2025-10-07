@@ -203,6 +203,12 @@ class ChatManager(
     fun getActions(): Actions = actions
 
     /**
+     * Get current mode from NavigationManager
+     * This is needed to sync UI state with the actual mode after voice commands
+     */
+    fun getCurrentModeFromNavigation(): ChatMode = navigationManager.mode
+
+    /**
      * Update TTS model
      */
     suspend fun updateTtsModel(ttsModel: TtsModel) {
