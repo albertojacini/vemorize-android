@@ -143,7 +143,7 @@ class ChatViewModel @Inject constructor(
             voiceInputManager.recognizedText.collect { recognizedText ->
                 if (!recognizedText.isNullOrBlank()) {
                     android.util.Log.d(TAG, "Recognized text: $recognizedText")
-                    processVoiceCommand(recognizedText)
+                    processVoiceInput(recognizedText)
                     voiceInputManager.clearRecognizedText()
                 }
             }
@@ -165,7 +165,7 @@ class ChatViewModel @Inject constructor(
         android.util.Log.d(TAG, "Voice managers initialized")
     }
 
-    private fun processVoiceCommand(command: String) {
+    private fun processVoiceInput(voiceInput: String) {
         viewModelScope.launch {
             try {
                 val currentState = _uiState.value as? ChatUiState.Ready ?: return@launch
@@ -173,10 +173,10 @@ class ChatViewModel @Inject constructor(
                 // Update UI to show processing
                 _uiState.value = currentState.copy(isProcessing = true, partialTranscript = null)
 
-                android.util.Log.d(TAG, "Processing voice command: $command")
+                android.util.Log.d(TAG, "Processing voice command: $voiceInput")
 
                 // Parse and execute command
-                val result = commandParser.parseAndExecute(command)
+                val result = commandParser.parseAndExecute(voiceInput)
 
                 android.util.Log.d(TAG, "Command result: ${result.message}")
 
@@ -184,6 +184,7 @@ class ChatViewModel @Inject constructor(
                 if (result.success && result.message.isNotBlank()) {
                     // Get speech speed from preferences
                     val speed = chatManager.getSpeechSpeed()
+                    android.util.Log.d(TAG, "Speaking result message: ${result.message}")
                     voiceOutputManager.speak(result.message, speed)
                 }
 
