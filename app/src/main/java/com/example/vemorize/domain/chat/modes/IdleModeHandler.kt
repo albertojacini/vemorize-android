@@ -3,7 +3,9 @@ package com.example.vemorize.domain.chat.modes
 import com.example.vemorize.data.chat.ChatApiClient
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
+import com.example.vemorize.domain.chat.commands.VoiceCommand
 import com.example.vemorize.domain.chat.managers.NavigationManager
+import com.example.vemorize.domain.chat.modes.commands.IdleSwitchModeCommand
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.ChatResponse
 import com.example.vemorize.domain.model.chat.HandlerResponse
@@ -11,6 +13,7 @@ import com.example.vemorize.domain.model.chat.LLMRequest
 
 /**
  * Handler for IDLE mode - general conversation and mode switching
+ * Port of TypeScript IdleHandler from idle/handler.ts
  */
 class IdleModeHandler(
     chatApiClient: ChatApiClient,
@@ -20,6 +23,18 @@ class IdleModeHandler(
 ) : BaseModeHandler(chatApiClient, actions, navigationManager, toolRegistry) {
 
     override val mode = ChatMode.IDLE
+
+    /**
+     * Commands available in Idle mode
+     */
+    override val commands: List<VoiceCommand> = listOf(
+        IdleSwitchModeCommand()
+    )
+
+    init {
+        // Register commands with matcher
+        matcher.registerCommands(commands)
+    }
 
     override suspend fun onEnter(): String {
         return "Idle mode activated. How can I help you?"

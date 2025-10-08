@@ -3,7 +3,12 @@ package com.example.vemorize.domain.chat.modes
 import com.example.vemorize.data.chat.ChatApiClient
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
+import com.example.vemorize.domain.chat.commands.VoiceCommand
 import com.example.vemorize.domain.chat.managers.NavigationManager
+import com.example.vemorize.domain.chat.modes.commands.QuizHelpCommand
+import com.example.vemorize.domain.chat.modes.commands.QuizSwitchModeCommand
+import com.example.vemorize.domain.chat.modes.commands.StartQuizCommand
+import com.example.vemorize.domain.chat.modes.commands.StopQuizCommand
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.ChatResponse
 import com.example.vemorize.domain.model.chat.HandlerResponse
@@ -11,6 +16,7 @@ import com.example.vemorize.domain.model.chat.LLMRequest
 
 /**
  * Handler for QUIZ mode - testing knowledge
+ * Port of TypeScript QuizHandler from quiz/handler.ts
  */
 class QuizModeHandler(
     chatApiClient: ChatApiClient,
@@ -20,6 +26,21 @@ class QuizModeHandler(
 ) : BaseModeHandler(chatApiClient, actions, navigationManager, toolRegistry) {
 
     override val mode = ChatMode.QUIZ
+
+    /**
+     * Commands available in Quiz mode
+     */
+    override val commands: List<VoiceCommand> = listOf(
+        QuizSwitchModeCommand(),
+        QuizHelpCommand(),
+        StartQuizCommand(),
+        StopQuizCommand()
+    )
+
+    init {
+        // Register commands with matcher
+        matcher.registerCommands(commands)
+    }
 
     override suspend fun onEnter(): String {
         return "Quiz mode activated. I'll ask you questions about the content."

@@ -3,7 +3,13 @@ package com.example.vemorize.domain.chat.modes
 import com.example.vemorize.data.chat.ChatApiClient
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
+import com.example.vemorize.domain.chat.commands.VoiceCommand
 import com.example.vemorize.domain.chat.managers.NavigationManager
+import com.example.vemorize.domain.chat.modes.commands.NextContentCommand
+import com.example.vemorize.domain.chat.modes.commands.ReadCurrentCommand
+import com.example.vemorize.domain.chat.modes.commands.ReadingHelpCommand
+import com.example.vemorize.domain.chat.modes.commands.ReadingSwitchModeCommand
+import com.example.vemorize.domain.chat.modes.commands.StopReadingCommand
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.ChatResponse
 import com.example.vemorize.domain.model.chat.HandlerResponse
@@ -11,6 +17,7 @@ import com.example.vemorize.domain.model.chat.LLMRequest
 
 /**
  * Handler for READING mode - reading content with navigation
+ * Port of TypeScript ReadingHandler from reading/handler.ts
  */
 class ReadingModeHandler(
     chatApiClient: ChatApiClient,
@@ -20,6 +27,22 @@ class ReadingModeHandler(
 ) : BaseModeHandler(chatApiClient, actions, navigationManager, toolRegistry) {
 
     override val mode = ChatMode.READING
+
+    /**
+     * Commands available in Reading mode
+     */
+    override val commands: List<VoiceCommand> = listOf(
+        ReadingSwitchModeCommand(),
+        ReadCurrentCommand(),
+        NextContentCommand(),
+        StopReadingCommand(),
+        ReadingHelpCommand()
+    )
+
+    init {
+        // Register commands with matcher
+        matcher.registerCommands(commands)
+    }
 
     override suspend fun onEnter(): String {
         val text = navigationManager.getReadingText()
