@@ -12,7 +12,7 @@ import com.example.vemorize.domain.chat.modes.commands.StopQuizCommand
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.ChatResponse
 import com.example.vemorize.domain.model.chat.HandlerResponse
-import com.example.vemorize.domain.model.chat.LLMRequest
+import com.example.vemorize.domain.model.chat.ApiLLMContext
 
 /**
  * Handler for QUIZ mode - testing knowledge
@@ -50,30 +50,24 @@ class QuizModeHandler(
         // Save quiz results if needed
     }
 
-    override suspend fun buildLLMRequest(userInput: String): LLMRequest {
-        val course = navigationManager.activeCourse
-            ?: throw IllegalStateException("No active course")
+    override suspend fun buildLLMContext(userInput: String): ApiLLMContext {
+        val currentContent = navigationManager.getReadingText() ?: "No content available"
 
-        return LLMRequest(
+        return ApiLLMContext(
             userMessage = userInput,
-            systemPrompt = buildQuizSystemPrompt(),
-            courseId = course.id,
-            userId = course.userId
+            toolNames = getToolNames(),
+            mode = "quiz",
+            userMemory = null, // TODO: Integrate user memory if needed
+            leafReprForPrompt = currentContent
         )
     }
 
-    private fun buildQuizSystemPrompt(): String {
-        return """
-            You are a quiz assistant. Your role is to:
-            - Ask questions about the course content
-            - Evaluate user answers
-            - Provide feedback
-            - Track quiz progress
-
-            Available tools:
-            - provide_chat_response: Respond to the user
-            - exit_mode: Exit quiz mode
-        """.trimIndent()
+    override fun getToolNames(): List<String> {
+        return listOf(
+            "provide_chat_response",
+            "exit_mode",
+            "switch_mode"
+        )
     }
 
     override fun getDefaultResponseMessage(): String {

@@ -31,7 +31,6 @@ sealed class ChatUiEvent {
     data class SwitchMode(val mode: ChatMode) : ChatUiEvent()
     object NavigateNext : ChatUiEvent()
     object NavigatePrevious : ChatUiEvent()
-    object StartNewConversation : ChatUiEvent()
     object ToggleVoiceListening : ChatUiEvent()
     object StopVoiceOutput : ChatUiEvent()
     object ClearVoiceError : ChatUiEvent()

@@ -9,7 +9,7 @@ import com.example.vemorize.domain.chat.modes.commands.IdleSwitchModeCommand
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.ChatResponse
 import com.example.vemorize.domain.model.chat.HandlerResponse
-import com.example.vemorize.domain.model.chat.LLMRequest
+import com.example.vemorize.domain.model.chat.ApiLLMContext
 
 /**
  * Handler for IDLE mode - general conversation and mode switching
@@ -44,30 +44,21 @@ class IdleModeHandler(
         // Nothing to clean up
     }
 
-    override suspend fun buildLLMRequest(userInput: String): LLMRequest {
-        val course = navigationManager.activeCourse
-            ?: throw IllegalStateException("No active course")
-
-        return LLMRequest(
+    override suspend fun buildLLMContext(userInput: String): ApiLLMContext {
+        return ApiLLMContext(
             userMessage = userInput,
-            systemPrompt = buildIdleSystemPrompt(),
-            courseId = course.id,
-            userId = course.userId
+            toolNames = getToolNames(),
+            mode = "idle",
+            userMemory = null, // TODO: Integrate user memory if needed
+            leafReprForPrompt = null
         )
     }
 
-    private fun buildIdleSystemPrompt(): String {
-        return """
-            You are a helpful learning assistant in IDLE mode.
-            You can help the user with:
-            - Switching to READING mode to read content
-            - Switching to QUIZ mode to test knowledge
-            - General questions about the course
-
-            Available tools:
-            - provide_chat_response: Respond to the user
-            - switch_mode: Switch to another mode (reading, quiz)
-        """.trimIndent()
+    override fun getToolNames(): List<String> {
+        return listOf(
+            "provide_chat_response",
+            "switch_mode"
+        )
     }
 
     override fun getDefaultResponseMessage(): String {

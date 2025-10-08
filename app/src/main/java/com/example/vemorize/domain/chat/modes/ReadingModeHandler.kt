@@ -13,7 +13,7 @@ import com.example.vemorize.domain.chat.modes.commands.StopReadingCommand
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.ChatResponse
 import com.example.vemorize.domain.model.chat.HandlerResponse
-import com.example.vemorize.domain.model.chat.LLMRequest
+import com.example.vemorize.domain.model.chat.ApiLLMContext
 
 /**
  * Handler for READING mode - reading content with navigation
@@ -53,41 +53,34 @@ class ReadingModeHandler(
         // Nothing to clean up
     }
 
-    override suspend fun buildLLMRequest(userInput: String): LLMRequest {
-        val course = navigationManager.activeCourse
-            ?: throw IllegalStateException("No active course")
+    override suspend fun buildLLMContext(userInput: String): ApiLLMContext {
+        val currentContent = navigationManager.getReadingText() ?: "No content available"
 
-        val currentContent = navigationManager.getReadingText() ?: "No content"
-
-        return LLMRequest(
+        return ApiLLMContext(
             userMessage = userInput,
-            systemPrompt = buildReadingSystemPrompt(currentContent),
-            courseId = course.id,
-            userId = course.userId
+            toolNames = getToolNames(),
+            mode = "reading",
+            userMemory = null, // TODO: Integrate user memory if needed
+            leafReprForPrompt = currentContent
         )
     }
 
-    private fun buildReadingSystemPrompt(currentContent: String): String {
-        return """
-            You are a reading assistant. The current content being read is:
-
-            $currentContent
-
-            You can help the user with:
-            - Explaining the content
-            - Navigating to next/previous content
-            - Exiting reading mode
-
-            Available tools:
-            - provide_chat_response: Respond to the user
-            - next_content: Move to next content
-            - previous_content: Move to previous content
-            - exit_mode: Exit reading mode
-        """.trimIndent()
+    override fun getToolNames(): List<String> {
+        return listOf(
+            "provide_chat_response",
+            "exit_mode",
+            "switch_mode"
+        )
     }
 
     override fun getDefaultResponseMessage(): String {
         return "I'm in reading mode. Say 'next' to continue or 'exit' to leave."
     }
 
+    override fun handleConversationError(error: Exception): HandlerResponse {
+        return HandlerResponse(
+            generatedBy = mode,
+            message = "Sorry, I had trouble processing that in reading mode. Please try again."
+        )
+    }
 }

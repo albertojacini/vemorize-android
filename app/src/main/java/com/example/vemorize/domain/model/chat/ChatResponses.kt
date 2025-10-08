@@ -34,26 +34,29 @@ data class CommandResponse(
 )
 
 /**
- * LLM request context
+ * API LLM Context - matches TypeScript ApiLLMContext
  */
-data class LLMRequest(
+data class ApiLLMContext(
     val userMessage: String,
-
-    val courseId: String,
-    val userId: String
+    val toolNames: List<String>,
+    val mode: String,
+    val userMemory: String? = null,
+    val leafReprForPrompt: String? = null
 )
 
-
+/**
+ * Tool call from LLM
+ */
 @Serializable
 data class ToolCall(
     val tool: String,
     val args: Map<String, JsonElement>
 )
 
-
 /**
- * LLM API response
+ * LLM API response - matches TypeScript ApiLLMResponse
  */
+@Serializable
 data class LLMApiResponse(
     val toolCalls: List<ToolCall> = emptyList()
 )

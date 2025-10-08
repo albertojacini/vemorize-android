@@ -76,19 +76,47 @@ abstract class BaseModeHandler(
 
     /**
      * Handle conversational input using LLM
+     * Port of TypeScript handleConversationalInput from base.ts:70-117
      */
     protected suspend fun handleConversationalInput(userInput: String): HandlerResponse {
         return try {
-            // REIMPLEMENT THIS
+            // Build LLM context
+            val llmContext = buildLLMContext(userInput)
+
+            val course = navigationManager.activeCourse
+                ?: throw IllegalStateException("No active course")
+
+            // Call API
+            val response = chatApiClient.sendLLMRequest(
+                llmContext = llmContext,
+                courseId = course.id,
+                userId = course.userId
+            )
+
+            // Extract chat response from tool calls
+            val assistantMessage = toolRegistry.extractChatResponse(response.toolCalls)
+
+            // Execute tool calls
+            toolRegistry.executeAll(response.toolCalls)
+
+            HandlerResponse(
+                generatedBy = mode,
+                message = assistantMessage.ifEmpty { getDefaultResponseMessage() }
+            )
         } catch (e: Exception) {
             handleConversationError(e)
         }
     }
 
     /**
-     * Build LLM request context - override for mode-specific context
+     * Build LLM context - override for mode-specific context
      */
-    protected abstract suspend fun buildLLMRequest(userInput: String): LLMRequest
+    protected abstract suspend fun buildLLMContext(userInput: String): ApiLLMContext
+
+    /**
+     * Get tool names for this mode
+     */
+    protected abstract fun getToolNames(): List<String>
 
     /**
      * Get default response when no chat response is found
