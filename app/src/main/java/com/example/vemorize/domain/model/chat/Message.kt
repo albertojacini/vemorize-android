@@ -2,7 +2,6 @@ package com.example.vemorize.domain.model.chat
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 
 /**
@@ -15,9 +14,9 @@ data class Message(
     val conversationId: String,
     val type: MessageType,
     val content: String,
-    @Transient
+    @SerialName("additional_kwargs")
     val additionalKwargs: Map<String, JsonElement>? = null,
-    @Transient
+    @SerialName("tool_calls")
     val toolCalls: List<ToolCall>? = null,
     @SerialName("created_at")
     val createdAt: String
