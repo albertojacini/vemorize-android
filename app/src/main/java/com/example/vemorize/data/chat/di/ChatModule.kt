@@ -6,7 +6,6 @@ import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.chat.ChatManager
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
-import com.example.vemorize.domain.chat.managers.ConversationManager
 import com.example.vemorize.domain.chat.managers.NavigationManager
 import com.example.vemorize.domain.chat.managers.UserMemoryManager
 import com.example.vemorize.domain.chat.managers.UserPreferencesManager
@@ -24,12 +23,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class ChatRepositoryModule {
-
-    @Binds
-    @Singleton
-    abstract fun bindConversationRepository(
-        impl: ConversationRepositoryImpl
-    ): ConversationRepository
 
     @Binds
     @Singleton
@@ -86,15 +79,6 @@ object ChatManagerModule {
 
     @Provides
     @ViewModelScoped
-    fun provideConversationManager(
-        conversationRepository: ConversationRepository,
-        userId: String
-    ): ConversationManager {
-        return ConversationManager(conversationRepository, userId)
-    }
-
-    @Provides
-    @ViewModelScoped
     fun provideUserPreferencesManager(
         userPreferencesRepository: UserPreferencesRepository,
         userId: String
@@ -143,7 +127,6 @@ object ChatManagerModule {
         navigationManager: NavigationManager,
         userMemoryManager: UserMemoryManager,
         userPreferencesManager: UserPreferencesManager,
-        conversationManager: ConversationManager,
         chatApiClient: ChatApiClient,
         actions: Actions,
         toolRegistry: ToolRegistry,
@@ -153,7 +136,6 @@ object ChatManagerModule {
             navigationManager,
             userMemoryManager,
             userPreferencesManager,
-            conversationManager,
             chatApiClient,
             actions,
             toolRegistry,

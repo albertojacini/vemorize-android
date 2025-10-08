@@ -1,5 +1,8 @@
 package com.example.vemorize.domain.model.chat
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+
 /**
  * Response types for chat interactions
  */
@@ -35,11 +38,18 @@ data class CommandResponse(
  */
 data class LLMRequest(
     val userMessage: String,
-    val systemPrompt: String? = null,
-    val conversationHistory: List<Message> = emptyList(),
+
     val courseId: String,
     val userId: String
 )
+
+
+@Serializable
+data class ToolCall(
+    val tool: String,
+    val args: Map<String, JsonElement>
+)
+
 
 /**
  * LLM API response

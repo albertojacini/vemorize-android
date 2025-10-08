@@ -90,10 +90,4 @@ class ReadingModeHandler(
         return "I'm in reading mode. Say 'next' to continue or 'exit' to leave."
     }
 
-    override fun handleConversationError(error: Exception): HandlerResponse {
-        return HandlerResponse(
-            generatedBy = mode,
-            message = "Sorry, I had trouble processing that. Please try again."
-        )
-    }
 }

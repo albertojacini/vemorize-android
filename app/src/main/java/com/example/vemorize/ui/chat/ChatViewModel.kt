@@ -224,7 +224,6 @@ class ChatViewModel @Inject constructor(
             is ChatUiEvent.SwitchMode -> switchMode(event.mode)
             ChatUiEvent.NavigateNext -> navigateNext()
             ChatUiEvent.NavigatePrevious -> navigatePrevious()
-            ChatUiEvent.StartNewConversation -> startNewConversation()
             ChatUiEvent.ToggleVoiceListening -> toggleVoiceListening()
             ChatUiEvent.StopVoiceOutput -> stopVoiceOutput()
             ChatUiEvent.ClearVoiceError -> clearVoiceError()
@@ -331,18 +330,6 @@ class ChatViewModel @Inject constructor(
                 chatManager.previousContent()
             } catch (e: Exception) {
                 _uiState.value = ChatUiState.Error(e.message ?: "Failed to navigate")
-            }
-        }
-    }
-
-    private fun startNewConversation() {
-        viewModelScope.launch {
-            try {
-                chatManager.startNewConversation()
-                val currentState = _uiState.value as? ChatUiState.Ready ?: return@launch
-                _uiState.value = currentState.copy(voiceExchangeMessages = emptyList())
-            } catch (e: Exception) {
-                _uiState.value = ChatUiState.Error(e.message ?: "Failed to start new conversation")
             }
         }
     }

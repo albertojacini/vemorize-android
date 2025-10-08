@@ -19,7 +19,6 @@ abstract class BaseModeHandler(
     protected val toolRegistry: ToolRegistry
 ) {
     abstract val mode: ChatMode
-    protected val messages = mutableListOf<Message>()
     protected val matcher: VoiceCommandMatcher = VoiceCommandMatcher()
 
     /**
@@ -80,22 +79,7 @@ abstract class BaseModeHandler(
      */
     protected suspend fun handleConversationalInput(userInput: String): HandlerResponse {
         return try {
-            // Build LLM request
-            val llmRequest = buildLLMRequest(userInput)
-
-            // Call LLM
-            val response = chatApiClient.sendLLMRequest(llmRequest)
-
-            // Execute tool calls
-            val toolResults = toolRegistry.executeAll(response.toolCalls)
-
-            // Extract chat response
-            val assistantMessage = toolRegistry.extractChatResponse(response.toolCalls)
-
-            HandlerResponse(
-                generatedBy = mode,
-                message = assistantMessage.ifEmpty { getDefaultResponseMessage() }
-            )
+            // REIMPLEMENT THIS
         } catch (e: Exception) {
             handleConversationError(e)
         }
