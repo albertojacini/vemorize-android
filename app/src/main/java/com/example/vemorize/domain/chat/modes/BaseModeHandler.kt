@@ -42,10 +42,15 @@ abstract class BaseModeHandler(
      * Port of TypeScript handleUserInput from base.ts:41-64
      */
     suspend fun handleUserInput(userInput: String): HandlerResponse {
+        android.util.Log.d(TAG, "handleUserInput: '$userInput' in mode: $mode")
+        android.util.Log.d(TAG, "Registered commands: ${matcher.getRegisteredCommands()}")
+
         // Path 1: Detect command
         val commandMatch = matcher.match(userInput)
+        android.util.Log.d(TAG, "Command match result: $commandMatch")
 
         if (commandMatch != null) {
+            android.util.Log.d(TAG, "Executing command: ${commandMatch.command}")
             // Path 2: Execute command
             val commandResponse = handleCommand(commandMatch)
             return HandlerResponse(
@@ -55,8 +60,13 @@ abstract class BaseModeHandler(
             )
         }
 
+        android.util.Log.d(TAG, "No command matched, handling as conversational input")
         // Path 3: Handle as conversational input
         return handleConversationalInput(userInput)
+    }
+
+    companion object {
+        private const val TAG = "BaseModeHandler"
     }
 
     /**

@@ -59,11 +59,18 @@ class VoiceCommandMatcher {
         val convertedInput = convertWordNumbers(input)
         val cleanInput = cleanInput(convertedInput)
 
+        android.util.Log.d(TAG, "match() - Original input: '$input'")
+        android.util.Log.d(TAG, "match() - Cleaned input: '$cleanInput'")
+
         // Find first matching pattern (first registered wins)
         for (pattern in parsedPatterns) {
+            android.util.Log.d(TAG, "match() - Testing pattern: ${pattern.originalPattern}, regex: ${pattern.regex.pattern}")
             val match = pattern.regex.find(cleanInput)
+            android.util.Log.d(TAG, "match() - Regex match result: $match")
             if (match != null) {
+                android.util.Log.d(TAG, "match() - Match groups: ${match.groupValues}")
                 val args = extractArguments(pattern, match)
+                android.util.Log.d(TAG, "match() - Extracted args: $args")
                 if (args != null) { // Only return if argument validation passed
                     return CommandMatch(
                         command = pattern.commandName,
@@ -74,7 +81,12 @@ class VoiceCommandMatcher {
             }
         }
 
+        android.util.Log.d(TAG, "match() - No pattern matched")
         return null
+    }
+
+    companion object {
+        private const val TAG = "VoiceCommandMatcher"
     }
 
     /**
@@ -109,10 +121,32 @@ class VoiceCommandMatcher {
         val segments = mutableListOf<Any>()
         val regexParts = mutableListOf<String>()
 
-        // Split pattern into parts, handling arguments
-        val parts = pattern.split(Regex("(\\{[^}]+\\})"))
+        // Find all argument placeholders
+        val argRegex = Regex("\\{[^}]+\\}")
+        val argMatches = argRegex.findAll(pattern).map { it.value to it.range }.toList()
+
+        // Split pattern by extracting text between arguments
+        var lastIndex = 0
+        val parts = mutableListOf<String>()
+
+        for ((argText, range) in argMatches) {
+            // Add text before this argument
+            if (range.first > lastIndex) {
+                parts.add(pattern.substring(lastIndex, range.first))
+            }
+            // Add the argument itself
+            parts.add(argText)
+            lastIndex = range.last + 1
+        }
+        // Add remaining text after last argument
+        if (lastIndex < pattern.length) {
+            parts.add(pattern.substring(lastIndex))
+        }
+
+        android.util.Log.d(TAG, "parsePattern: pattern='$pattern', parts=$parts")
 
         for (part in parts) {
+            android.util.Log.d(TAG, "parsePattern: processing part='$part'")
             when {
                 part.startsWith("{") && part.endsWith("}") -> {
                     // Parse argument: {type:name}
