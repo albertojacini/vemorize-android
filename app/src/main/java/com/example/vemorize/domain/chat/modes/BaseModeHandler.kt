@@ -3,11 +3,14 @@ package com.example.vemorize.domain.chat.modes
 import com.example.vemorize.data.chat.ChatApiClient
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
+import com.example.vemorize.domain.chat.commands.VoiceCommand
+import com.example.vemorize.domain.chat.commands.VoiceCommandMatcher
 import com.example.vemorize.domain.chat.managers.NavigationManager
 import com.example.vemorize.domain.model.chat.*
 
 /**
  * Base class for mode handlers
+ * Port of TypeScript Handler from base.ts
  */
 abstract class BaseModeHandler(
     protected val chatApiClient: ChatApiClient,
@@ -17,6 +20,12 @@ abstract class BaseModeHandler(
 ) {
     abstract val mode: ChatMode
     protected val messages = mutableListOf<Message>()
+    protected val matcher: VoiceCommandMatcher = VoiceCommandMatcher()
+
+    /**
+     * Mode-specific commands - override in each mode handler
+     */
+    protected abstract val commands: List<VoiceCommand>
 
     /**
      * Called when entering this mode
@@ -29,12 +38,41 @@ abstract class BaseModeHandler(
     abstract suspend fun onExit()
 
     /**
-     * Handle user input
+     * Main entry point for handling user input
+     * Three-path routing: detect command → execute command OR handle conversationally
+     * Port of TypeScript handleUserInput from base.ts:41-64
      */
     suspend fun handleUserInput(userInput: String): HandlerResponse {
-        // TODO: Check for voice commands first
-        // For now, handle as conversational input
+        // Path 1: Detect command
+        val commandMatch = matcher.match(userInput)
+
+        if (commandMatch != null) {
+            // Path 2: Execute command
+            val commandResponse = handleCommand(commandMatch)
+            return HandlerResponse(
+                generatedBy = mode,
+                message = commandResponse.response,
+                voiceLang = commandResponse.voiceLang
+            )
+        }
+
+        // Path 3: Handle as conversational input
         return handleConversationalInput(userInput)
+    }
+
+    /**
+     * Handle command execution
+     * Port of TypeScript handleCommand from base.ts:122-139
+     */
+    private suspend fun handleCommand(commandMatch: com.example.vemorize.domain.chat.commands.CommandMatch): com.example.vemorize.domain.chat.commands.CommandResult {
+        // Select the correct command based on the command name
+        val command = commands.find { it.name == commandMatch.command }
+            ?: return com.example.vemorize.domain.chat.commands.CommandResult(
+                response = "Command not found"
+            )
+
+        // Execute the command
+        return command.execute(commandMatch, actions)
     }
 
     /**
