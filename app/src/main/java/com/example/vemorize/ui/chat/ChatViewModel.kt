@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.vemorize.data.auth.AuthRepository
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.chat.ChatManager
-import com.example.vemorize.domain.chat.voice.CommandParser
 import com.example.vemorize.domain.chat.voice.VoiceInputManager
 import com.example.vemorize.domain.chat.voice.VoiceOutputManager
 import com.example.vemorize.domain.model.chat.ChatMode
@@ -36,7 +35,6 @@ class ChatViewModel @Inject constructor(
     // Voice managers
     private lateinit var voiceInputManager: VoiceInputManager
     private lateinit var voiceOutputManager: VoiceOutputManager
-    private lateinit var commandParser: CommandParser
 
     init {
         initializeChat()
@@ -95,10 +93,6 @@ class ChatViewModel @Inject constructor(
         // Initialize voice output
         voiceOutputManager = VoiceOutputManager(application)
         voiceOutputManager.initialize()
-
-        // Initialize command parser - need to get Actions from chatManager
-        // We'll create a lazy getter since chatManager needs to be initialized first
-        commandParser = CommandParser(chatManager.getActions())
 
         // Set up voice output callbacks
         voiceOutputManager.onSpeakingFinished = {
@@ -178,23 +172,23 @@ class ChatViewModel @Inject constructor(
                     voiceExchangeMessages = currentState.voiceExchangeMessages + userVoiceExchangeMessage
                 )
 
-                android.util.Log.d(TAG, "Processing voice command: $voiceInput")
+                android.util.Log.d(TAG, "Processing voice input: $voiceInput")
 
-                // Parse and execute command
-                val result = commandParser.parseAndExecute(voiceInput)
+                // Handle input through ChatManager (includes command detection and conversational fallback)
+                val chatResponse = chatManager.handleInput(voiceInput)
 
-                android.util.Log.d(TAG, "Command result: ${result.message}")
+                android.util.Log.d(TAG, "Chat response: ${chatResponse.message}")
 
                 // Add system response to voice exchange messages
-                val systemVoiceExchangeMessage = VoiceExchangeMessage(content = result.message, isFromUser = false)
+                val systemVoiceExchangeMessage = VoiceExchangeMessage(content = chatResponse.message, isFromUser = false)
                 val updatedState = _uiState.value as? ChatUiState.Ready ?: return@launch
 
                 // Speak the response
-                if (result.success && result.message.isNotBlank()) {
-                    // Get speech speed from preferences
-                    val speed = chatManager.getSpeechSpeed()
-                    android.util.Log.d(TAG, "Speaking result message: ${result.message}")
-                    voiceOutputManager.speak(result.message, speed)
+                if (chatResponse.message.isNotBlank()) {
+                    // Get speech speed from ChatResponse (already includes mode-specific speed)
+                    val speed = chatResponse.speechSpeed ?: 1.0f
+                    android.util.Log.d(TAG, "Speaking response message: ${chatResponse.message}")
+                    voiceOutputManager.speak(chatResponse.message, speed)
                 }
 
                 // Sync current mode from NavigationManager (in case voice command changed it)
@@ -204,7 +198,7 @@ class ChatViewModel @Inject constructor(
                 // Update UI
                 _uiState.value = updatedState.copy(
                     isProcessing = false,
-                    voiceError = if (result.success) null else result.message,
+                    voiceError = null,  // Clear any previous errors
                     currentMode = actualMode,  // Sync the mode with NavigationManager
                     voiceExchangeMessages = updatedState.voiceExchangeMessages + systemVoiceExchangeMessage
                 )
