@@ -3,6 +3,7 @@ package com.example.vemorize.data.chat.di
 import com.example.vemorize.data.auth.AuthRepository
 import com.example.vemorize.data.chat.*
 import com.example.vemorize.data.courses.CoursesRepository
+import com.example.vemorize.data.courses.CourseTreeRepository
 import com.example.vemorize.domain.chat.ChatManager
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
@@ -100,9 +101,10 @@ object ChatManagerModule {
     fun provideNavigationManager(
         navigationRepository: NavigationRepository,
         coursesRepository: CoursesRepository,
+        courseTreeRepository: CourseTreeRepository,
         userId: String
     ): NavigationManager {
-        return NavigationManager(navigationRepository, coursesRepository, userId)
+        return NavigationManager(navigationRepository, coursesRepository, courseTreeRepository, userId)
     }
 
     @Provides

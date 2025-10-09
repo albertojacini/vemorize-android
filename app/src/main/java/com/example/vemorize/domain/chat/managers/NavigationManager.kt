@@ -3,9 +3,12 @@ package com.example.vemorize.domain.chat.managers
 import android.util.Log
 import com.example.vemorize.data.chat.NavigationRepository
 import com.example.vemorize.data.courses.CoursesRepository
+import com.example.vemorize.data.courses.CourseTreeRepository
 import com.example.vemorize.domain.model.chat.ChatMode
 import com.example.vemorize.domain.model.chat.Navigation
 import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.model.courses.CourseNode
+import com.example.vemorize.domain.model.courses.CourseTree
 import javax.inject.Inject
 
 /**
@@ -14,9 +17,13 @@ import javax.inject.Inject
 class NavigationManager(
     private val navigationRepository: NavigationRepository,
     private val coursesRepository: CoursesRepository,
+    private val courseTreeRepository: CourseTreeRepository,
     private val userId: String
 ) {
     var activeCourse: Course? = null
+        private set
+
+    var activeCourseTree: CourseTree? = null
         private set
 
     var activeNavigation: Navigation? = null
@@ -24,13 +31,14 @@ class NavigationManager(
 
     var mode: ChatMode = ChatMode.IDLE
 
-    var readingConfig: ReadingConfig = ReadingConfig.REGULAR
+    var readingConfig: ReadingConfig = ReadingConfig(length = ReadingLength.REGULAR)
 
     /**
      * Load a course
      */
     suspend fun loadCourse(course: Course) {
         activeCourse = course
+        activeCourseTree = courseTreeRepository.getCourseTree(course.id)
         activeNavigation = navigationRepository.getOrCreateNavigation(userId, course.id)
     }
 
@@ -54,28 +62,47 @@ class NavigationManager(
     fun getCurrentLeafId(): String? = activeNavigation?.currentLeafId
 
     /**
+     * Get current leaf node
+     */
+    fun getCurrentLeaf(): CourseNode? {
+        val navigation = activeNavigation ?: return null
+        val tree = activeCourseTree ?: return null
+        return tree.getLeafById(navigation.currentLeafId)
+    }
+
+    /**
      * Get reading text based on config
-     * Note: This is simplified - actual implementation would fetch from course tree
      */
     fun getReadingText(): String? {
-        // TODO: Implement actual reading text retrieval from course tree
-        return "Reading text placeholder"
+        val leaf = getCurrentLeaf() ?: return null
+
+        return when (readingConfig.length) {
+            ReadingLength.SHORT -> leaf.readingTextShort
+            ReadingLength.REGULAR -> leaf.readingTextRegular
+            ReadingLength.LONG -> leaf.readingTextLong
+        }
     }
 
     /**
      * Move navigation by steps
      */
-    suspend fun moveNavigation(steps: Int) {
-        val navigation = activeNavigation ?: return
+    suspend fun moveNavigation(steps: Int): CourseNode? {
+        val navigation = activeNavigation ?: return null
+        val tree = activeCourseTree ?: return null
 
-        // TODO: Implement actual leaf navigation using course tree
-        // For now, this is a placeholder
-        val newLeafId = "next-leaf-id" // Placeholder
+        val currentLeaf = tree.getLeafById(navigation.currentLeafId) ?: return null
+        val nextLeaf = tree.getLeafAtOffset(currentLeaf, steps) ?: return null
 
-        activeNavigation = navigationRepository.updateCurrentLeaf(navigation.id, newLeafId)
+        activeNavigation = navigationRepository.updateCurrentLeaf(navigation.id, nextLeaf.id)
+        return nextLeaf
     }
 
-    enum class ReadingConfig {
-        SHORT, REGULAR, LONG
-    }
+}
+
+data class ReadingConfig(
+    val length: ReadingLength = ReadingLength.REGULAR
+)
+
+enum class ReadingLength {
+    SHORT, REGULAR, LONG
 }

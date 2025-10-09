@@ -40,4 +40,34 @@ data class CourseTree(
     fun getAllLeaves(): List<CourseNode> {
         return allNodes.filter { it.nodeType == "leaf" }
     }
+
+    /**
+     * Get a leaf node by ID.
+     */
+    fun getLeafById(leafId: String): CourseNode? {
+        return allNodes.firstOrNull { it.id == leafId && it.nodeType == "leaf" }
+    }
+
+    /**
+     * Get a leaf at the specified offset from the current leaf.
+     * Returns null if offset is out of bounds.
+     */
+    fun getLeafAtOffset(currentLeaf: CourseNode, steps: Int): CourseNode? {
+        val leaves = getAllLeaves()
+        val currentIndex = leaves.indexOfFirst { it.id == currentLeaf.id }
+
+        if (currentIndex == -1) {
+            // Current leaf not found in this tree
+            return null
+        }
+
+        val targetIndex = currentIndex + steps
+
+        // Check bounds
+        if (targetIndex < 0 || targetIndex >= leaves.size) {
+            return null
+        }
+
+        return leaves[targetIndex]
+    }
 }
