@@ -68,6 +68,7 @@ class NavigationRepositoryImpl @Inject constructor(
                 updatedAt = Clock.System.now().toString()
             )
 
+            // Update the navigation
             postgrest
                 .from("navigation")
                 .update(updated) {
@@ -75,7 +76,10 @@ class NavigationRepositoryImpl @Inject constructor(
                         eq("id", navigationId)
                     }
                 }
-                .decodeSingle<Navigation>()
+
+            // Fetch and return the updated navigation
+            getNavigationById(navigationId)
+                ?: throw IllegalStateException("Navigation not found after update: $navigationId")
         } catch (e: Exception) {
             Log.e(TAG, "Error updating current leaf", e)
             throw e
