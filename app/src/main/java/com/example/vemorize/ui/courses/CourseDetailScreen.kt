@@ -1,17 +1,23 @@
 package com.example.vemorize.ui.courses
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.vemorize.domain.model.annotations.Annotation
+import com.example.vemorize.domain.model.annotations.MemorizationState
 import com.example.vemorize.domain.model.courses.Course
 import com.example.vemorize.domain.model.courses.CourseNode
 import com.example.vemorize.domain.model.courses.CourseTree
@@ -23,11 +29,21 @@ fun CourseDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    CourseDetailContent(uiState = uiState)
+    CourseDetailContent(
+        uiState = uiState,
+        onMemorizationStateChange = viewModel::updateMemorizationState,
+        onPersonalNotesChange = viewModel::updatePersonalNotes,
+        onVisitCountIncrement = viewModel::incrementVisitCount
+    )
 }
 
 @Composable
-fun CourseDetailContent(uiState: CourseDetailUiState) {
+fun CourseDetailContent(
+    uiState: CourseDetailUiState,
+    onMemorizationStateChange: (String, MemorizationState) -> Unit = { _, _ -> },
+    onPersonalNotesChange: (String, String?) -> Unit = { _, _ -> },
+    onVisitCountIncrement: (String) -> Unit = {}
+) {
     when (uiState) {
         is CourseDetailUiState.Loading -> {
             Box(
@@ -50,7 +66,19 @@ fun CourseDetailContent(uiState: CourseDetailUiState) {
 
                 // Tree nodes list
                 items(uiState.tree.allNodes) { node ->
-                    NodeCard(node = node)
+                    NodeCard(
+                        node = node,
+                        annotation = uiState.annotations[node.id],
+                        onMemorizationStateChange = { newState ->
+                            onMemorizationStateChange(node.id, newState)
+                        },
+                        onPersonalNotesChange = { notes ->
+                            onPersonalNotesChange(node.id, notes)
+                        },
+                        onVisitCountIncrement = {
+                            onVisitCountIncrement(node.id)
+                        }
+                    )
                 }
             }
         }
@@ -96,37 +124,62 @@ fun CourseHeader(course: Course) {
 }
 
 @Composable
-fun NodeCard(node: CourseNode) {
+fun NodeCard(
+    node: CourseNode,
+    annotation: Annotation? = null,
+    onMemorizationStateChange: (MemorizationState) -> Unit = {},
+    onPersonalNotesChange: (String?) -> Unit = {},
+    onVisitCountIncrement: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        border = if (annotation == null) {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+        } else null
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Node type badge
-            Text(
-                text = if (node.nodeType == "container") "Container" else "Leaf: ${node.leafType ?: ""}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    // Node type badge
+                    Text(
+                        text = if (node.nodeType == "container") "Container" else "Leaf: ${node.leafType ?: ""}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-            // Title
-            Text(
-                text = node.title,
-                style = MaterialTheme.typography.titleMedium
-            )
+                    // Title
+                    Text(
+                        text = node.title,
+                        style = MaterialTheme.typography.titleMedium
+                    )
 
-            // Description
-            node.description?.let { desc ->
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = desc,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    // Description
+                    node.description?.let { desc ->
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = desc,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Annotation controls
+                AnnotationControls(
+                    annotation = annotation,
+                    onMemorizationStateChange = onMemorizationStateChange,
+                    onPersonalNotesChange = onPersonalNotesChange,
+                    onVisitCountIncrement = onVisitCountIncrement
                 )
             }
 
@@ -142,6 +195,143 @@ fun NodeCard(node: CourseNode) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AnnotationControls(
+    annotation: Annotation?,
+    onMemorizationStateChange: (MemorizationState) -> Unit,
+    onPersonalNotesChange: (String?) -> Unit,
+    onVisitCountIncrement: () -> Unit
+) {
+    var showNotesDialog by remember { mutableStateOf(false) }
+    var stateMenuExpanded by remember { mutableStateOf(false) }
+
+    val state = annotation?.memorizationState ?: MemorizationState.NEW
+    val stateLabel = when (state) {
+        MemorizationState.NEW -> "New"
+        MemorizationState.LEARNING -> "Learning"
+        MemorizationState.REVIEW -> "Review"
+        MemorizationState.MASTERED -> "Mastered"
+    }
+    val stateColor = when (state) {
+        MemorizationState.NEW -> MaterialTheme.colorScheme.error
+        MemorizationState.LEARNING -> MaterialTheme.colorScheme.tertiary
+        MemorizationState.REVIEW -> MaterialTheme.colorScheme.secondary
+        MemorizationState.MASTERED -> MaterialTheme.colorScheme.primary
+    }
+
+    Column(horizontalAlignment = Alignment.End) {
+        // Memorization state badge
+        Box {
+            AssistChip(
+                onClick = { stateMenuExpanded = true },
+                label = { Text(stateLabel, style = MaterialTheme.typography.labelSmall) },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = stateColor.copy(alpha = 0.2f),
+                    labelColor = stateColor
+                ),
+                border = if (annotation == null) {
+                    BorderStroke(1.dp, stateColor.copy(alpha = 0.5f))
+                } else null,
+                trailingIcon = {
+                    Icon(
+                        Icons.Default.ArrowDropDown,
+                        contentDescription = "Change state",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
+
+            DropdownMenu(
+                expanded = stateMenuExpanded,
+                onDismissRequest = { stateMenuExpanded = false }
+            ) {
+                MemorizationState.entries.forEach { state ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                when (state) {
+                                    MemorizationState.NEW -> "New"
+                                    MemorizationState.LEARNING -> "Learning"
+                                    MemorizationState.REVIEW -> "Review"
+                                    MemorizationState.MASTERED -> "Mastered"
+                                }
+                            )
+                        },
+                        onClick = {
+                            onMemorizationStateChange(state)
+                            stateMenuExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            // Visit count button
+            FilledTonalIconButton(
+                onClick = onVisitCountIncrement,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Text(
+                    text = "${annotation?.visitCount ?: 0}",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+
+            // Notes button
+            FilledTonalIconButton(
+                onClick = { showNotesDialog = true },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit notes",
+                    modifier = Modifier.size(14.dp),
+                    tint = if (annotation?.personalNotes != null) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+            }
+        }
+    }
+
+    // Notes dialog
+    if (showNotesDialog) {
+        var notesText by remember { mutableStateOf(annotation?.personalNotes ?: "") }
+
+        AlertDialog(
+            onDismissRequest = { showNotesDialog = false },
+            title = { Text("Personal Notes") },
+            text = {
+                OutlinedTextField(
+                    value = notesText,
+                    onValueChange = { notesText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Add your notes...") },
+                    minLines = 4
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onPersonalNotesChange(notesText.ifBlank { null })
+                    showNotesDialog = false
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNotesDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -196,7 +386,11 @@ fun CourseDetailScreenPreview() {
         val tree = CourseTree.fromNodes(listOf(rootNode, leafNode))
 
         CourseDetailContent(
-            uiState = CourseDetailUiState.Success(course = course, tree = tree)
+            uiState = CourseDetailUiState.Success(
+                course = course,
+                tree = tree,
+                annotations = emptyMap()
+            )
         )
     }
 }
