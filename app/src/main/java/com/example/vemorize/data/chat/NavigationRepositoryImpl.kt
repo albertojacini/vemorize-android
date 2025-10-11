@@ -52,7 +52,9 @@ class NavigationRepositoryImpl @Inject constructor(
                 currentLeafId = initialLeafId,
                 createdAt = now,
                 updatedAt = now
-            ))
+            )) {
+                select()
+            }
             .decodeSingle<Navigation>()
     }
 
