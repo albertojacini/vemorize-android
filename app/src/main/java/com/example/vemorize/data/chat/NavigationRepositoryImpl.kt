@@ -1,7 +1,7 @@
 package com.example.vemorize.data.chat
 
 import android.util.Log
-import com.example.vemorize.data.courses.CoursesRepository
+import com.example.vemorize.data.courses.CourseTreeRepository
 import com.example.vemorize.domain.model.chat.Navigation
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 class NavigationRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest,
-    private val coursesRepository: CoursesRepository
+    private val courseTreeRepository: CourseTreeRepository
 ) : NavigationRepository {
 
     override suspend fun getOrCreateNavigation(userId: String, courseId: String): Navigation {
@@ -33,13 +33,13 @@ class NavigationRepositoryImpl @Inject constructor(
     }
 
     private suspend fun createDefaultNavigation(userId: String, courseId: String): Navigation {
-        // Get the course to find the initial leaf
-        val course = coursesRepository.getCourseById(courseId)
-            ?: throw IllegalStateException("Course not found: $courseId")
+        // Get the course tree to find the initial leaf
+        val tree = courseTreeRepository.getCourseTree(courseId)
+            ?: throw IllegalStateException("Course tree not found: $courseId")
 
-        // TODO: Get the first leaf from course tree
-        // For now, using a placeholder
-        val initialLeafId = "placeholder-leaf-id"
+        // Get the first leaf from course tree
+        val initialLeafId = tree.getDefaultLeaf()?.id
+            ?: throw IllegalStateException("No leaves found in course: $courseId")
 
         val now = Clock.System.now().toString()
 

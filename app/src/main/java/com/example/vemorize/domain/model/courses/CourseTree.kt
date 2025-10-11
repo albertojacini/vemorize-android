@@ -70,4 +70,12 @@ data class CourseTree(
 
         return leaves[targetIndex]
     }
+
+    /**
+     * Get the default leaf (first leaf by order_index).
+     * Returns null if no leaves exist.
+     */
+    fun getDefaultLeaf(): CourseNode? {
+        return getAllLeaves().firstOrNull()
+    }
 }
