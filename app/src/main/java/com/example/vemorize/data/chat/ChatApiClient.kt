@@ -73,6 +73,6 @@ class ChatApiClient @Inject constructor(
 
     companion object {
         private const val TAG = "ChatApiClient"
-        private const val API_BASE_URL = "http://localhost:3000"
+        private const val API_BASE_URL = "http://10.0.2.2:3000"
     }
 }

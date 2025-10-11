@@ -90,30 +90,39 @@ abstract class BaseModeHandler(
      */
     protected suspend fun handleConversationalInput(userInput: String): HandlerResponse {
         return try {
+            android.util.Log.d(TAG, "handleConversationalInput: starting for input: '$userInput'")
+
             // Build LLM context
             val llmContext = buildLLMContext(userInput)
+            android.util.Log.d(TAG, "handleConversationalInput: built LLM context")
 
             val course = navigationManager.activeCourse
                 ?: throw IllegalStateException("No active course")
+            android.util.Log.d(TAG, "handleConversationalInput: active course: ${course.id}")
 
             // Call API
+            android.util.Log.d(TAG, "handleConversationalInput: calling API...")
             val response = chatApiClient.sendLLMRequest(
                 llmContext = llmContext,
                 courseId = course.id,
                 userId = course.userId
             )
+            android.util.Log.d(TAG, "handleConversationalInput: API response received, toolCalls: ${response.toolCalls.size}")
 
             // Extract chat response from tool calls
             val assistantMessage = toolRegistry.extractChatResponse(response.toolCalls)
+            android.util.Log.d(TAG, "handleConversationalInput: extracted message: '$assistantMessage'")
 
             // Execute tool calls
             toolRegistry.executeAll(response.toolCalls)
+            android.util.Log.d(TAG, "handleConversationalInput: tool calls executed")
 
             HandlerResponse(
                 generatedBy = mode,
                 message = assistantMessage.ifEmpty { getDefaultResponseMessage() }
             )
         } catch (e: Exception) {
+            android.util.Log.e(TAG, "handleConversationalInput: ERROR", e)
             handleConversationError(e)
         }
     }

@@ -131,6 +131,8 @@ fun NodeCard(
     onPersonalNotesChange: (String?) -> Unit = {},
     onVisitCountIncrement: () -> Unit = {}
 ) {
+    var showNotesPreview by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         border = if (annotation == null) {
@@ -183,6 +185,39 @@ fun NodeCard(
                 )
             }
 
+            // Personal notes preview (if exists)
+            annotation?.personalNotes?.let { notes ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ),
+                    onClick = { showNotesPreview = true }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Personal notes",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = notes.take(60) + if (notes.length > 60) "..." else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2
+                        )
+                    }
+                }
+            }
+
             // Reading text for leaf nodes
             if (node.nodeType == "leaf") {
                 node.readingTextRegular?.let { text ->
@@ -195,6 +230,25 @@ fun NodeCard(
                 }
             }
         }
+    }
+
+    // Notes preview dialog
+    if (showNotesPreview && annotation?.personalNotes != null) {
+        AlertDialog(
+            onDismissRequest = { showNotesPreview = false },
+            title = { Text("Personal Notes") },
+            text = {
+                Text(
+                    text = annotation.personalNotes,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showNotesPreview = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }
 
