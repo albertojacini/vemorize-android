@@ -45,12 +45,19 @@ data class ApiLLMContext(
 )
 
 /**
- * Tool call from LLM
+ * Tool call from LLM - matches OpenAI format
  */
 @Serializable
 data class ToolCall(
-    val tool: String,
-    val args: Map<String, JsonElement>
+    val id: String,
+    val type: String,
+    val function: ToolFunction
+)
+
+@Serializable
+data class ToolFunction(
+    val name: String,
+    val arguments: String
 )
 
 /**

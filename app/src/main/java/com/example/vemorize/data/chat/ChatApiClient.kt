@@ -50,10 +50,10 @@ class ChatApiClient @Inject constructor(
             }
         }
 
-        Log.d(TAG, "Sending LLM request to $API_BASE_URL/api/conversation")
+        Log.d(TAG, "Sending LLM request to $API_BASE_URL/functions/v1/chat-llm")
         Log.d(TAG, "Request body: $requestBody")
 
-        val response: HttpResponse = supabaseClient.httpClient.post("$API_BASE_URL/api/conversation") {
+        val response: HttpResponse = supabaseClient.httpClient.post("$API_BASE_URL/functions/v1/chat-llm") {
             header(HttpHeaders.Authorization, "Bearer ${session.accessToken}")
             contentType(ContentType.Application.Json)
             setBody(json.encodeToString(requestBody))
@@ -73,6 +73,6 @@ class ChatApiClient @Inject constructor(
 
     companion object {
         private const val TAG = "ChatApiClient"
-        private const val API_BASE_URL = "http://10.0.2.2:3000"
+        private const val API_BASE_URL = "http://10.0.2.2:54321"
     }
 }
