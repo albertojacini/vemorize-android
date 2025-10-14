@@ -32,7 +32,7 @@ class ToolRegistry(
         }
     }
 
-    fun extractChatResponse(toolCalls: List<ToolCall>): String {
+    suspend fun extractChatResponse(toolCalls: List<ToolCall>): String {
         val provideChatResponse = tools["provide_chat_response"] as? ProvideChatResponseToolHandler
         val foundToolCall = toolCalls.find { it.tool == "provide_chat_response" }
 
@@ -57,7 +57,7 @@ class ToolRegistry(
  */
 interface ToolHandler {
     val name: String
-    fun execute(toolCall: ToolCall): ActionResult
+    suspend fun execute(toolCall: ToolCall): ActionResult
 }
 
 /**
@@ -66,7 +66,7 @@ interface ToolHandler {
 class ProvideChatResponseToolHandler : ToolHandler {
     override val name = "provide_chat_response"
 
-    override fun execute(toolCall: ToolCall): ActionResult {
+    override suspend fun execute(toolCall: ToolCall): ActionResult {
         return try {
             val args = toolCall.args
             val message = args["response"]?.jsonPrimitive?.content
@@ -90,7 +90,7 @@ class ExitModeToolHandler(
 ) : ToolHandler {
     override val name = "exit_mode"
 
-    override fun execute(toolCall: ToolCall): ActionResult {
+    override suspend fun execute(toolCall: ToolCall): ActionResult {
         actions.exitCurrentMode()
         return ActionResult(success = true)
     }
@@ -104,10 +104,10 @@ class SwitchModeToolHandler(
 ) : ToolHandler {
     override val name = "switch_mode"
 
-    override fun execute(toolCall: ToolCall): ActionResult {
+    override suspend fun execute(toolCall: ToolCall): ActionResult {
         return try {
             val args = toolCall.args
-            val modeStr = args["mode"]?.jsonPrimitive?.content
+            val modeStr = args["targetMode"]?.jsonPrimitive?.content
             val mode = when (modeStr) {
                 "idle" -> ChatMode.IDLE
                 "reading" -> ChatMode.READING
@@ -115,11 +115,10 @@ class SwitchModeToolHandler(
                 else -> return ActionResult(success = false, error = "Invalid mode: $modeStr")
             }
 
-            // Note: This is synchronous but switchMode is suspend
-            // In a real implementation, you'd need to handle this properly
-            ActionResult(success = true, data = mode)
+            // Actually switch the mode
+            actions.switchMode(mode)
         } catch (e: Exception) {
-            ActionResult(success = false, error = "Failed to parse arguments: ${e.message}")
+            ActionResult(success = false, error = "Failed to switch mode: ${e.message}")
         }
     }
 }
