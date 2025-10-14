@@ -107,14 +107,16 @@ abstract class BaseModeHandler(
                 courseId = course.id,
                 userId = course.userId
             )
-            android.util.Log.d(TAG, "handleConversationalInput: API response received, toolCalls: ${response.toolCalls.size}")
+
+            val toolCalls = response.data?.toolCalls ?: emptyList()
+            android.util.Log.d(TAG, "handleConversationalInput: API response received, toolCalls: ${toolCalls.size}")
 
             // Extract chat response from tool calls
-            val assistantMessage = toolRegistry.extractChatResponse(response.toolCalls)
+            val assistantMessage = toolRegistry.extractChatResponse(toolCalls)
             android.util.Log.d(TAG, "handleConversationalInput: extracted message: '$assistantMessage'")
 
             // Execute tool calls
-            toolRegistry.executeAll(response.toolCalls)
+            toolRegistry.executeAll(toolCalls)
             android.util.Log.d(TAG, "handleConversationalInput: tool calls executed")
 
             HandlerResponse(

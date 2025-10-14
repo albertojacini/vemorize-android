@@ -61,10 +61,17 @@ data class ToolFunction(
 )
 
 /**
- * LLM API response - matches TypeScript ApiLLMResponse
+ * LLM API response wrapper
  */
 @Serializable
 data class LLMApiResponse(
+    val success: Boolean,
+    val data: LLMApiResponseData? = null,
+    val error: String? = null
+)
+
+@Serializable
+data class LLMApiResponseData(
     val toolCalls: List<ToolCall> = emptyList()
 )
 

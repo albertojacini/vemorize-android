@@ -59,16 +59,28 @@ class ChatApiClient @Inject constructor(
             setBody(json.encodeToString(requestBody))
         }
 
+        val responseBody = response.bodyAsText()
+        Log.d(TAG, "LLM response status: ${response.status}")
+        Log.d(TAG, "LLM response body: $responseBody")
+
         if (!response.status.isSuccess()) {
-            val errorBody = response.bodyAsText()
-            Log.e(TAG, "LLM request failed: ${response.status} - $errorBody")
-            throw Exception("API request failed: ${response.status} - $errorBody")
+            Log.e(TAG, "LLM request failed: ${response.status} - $responseBody")
+            throw Exception("API request failed: ${response.status} - $responseBody")
         }
 
-        val responseBody = response.bodyAsText()
-        Log.d(TAG, "LLM response: $responseBody")
+        val apiResponse = json.decodeFromString<LLMApiResponse>(responseBody)
 
-        return json.decodeFromString<LLMApiResponse>(responseBody)
+        if (!apiResponse.success) {
+            Log.e(TAG, "API returned error: ${apiResponse.error}")
+            throw Exception("API error: ${apiResponse.error}")
+        }
+
+        if (apiResponse.data == null) {
+            Log.e(TAG, "API returned no data")
+            throw Exception("API returned no data")
+        }
+
+        return apiResponse
     }
 
     companion object {
