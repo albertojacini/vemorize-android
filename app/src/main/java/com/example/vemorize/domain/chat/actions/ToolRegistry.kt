@@ -28,13 +28,13 @@ class ToolRegistry(
 
     suspend fun executeAll(toolCalls: List<ToolCall>): List<ActionResult> {
         return toolCalls.mapNotNull { toolCall ->
-            tools[toolCall.function.name]?.execute(toolCall)
+            tools[toolCall.tool]?.execute(toolCall)
         }
     }
 
     fun extractChatResponse(toolCalls: List<ToolCall>): String {
         val provideChatResponse = tools["provide_chat_response"] as? ProvideChatResponseToolHandler
-        val foundToolCall = toolCalls.find { it.function.name == "provide_chat_response" }
+        val foundToolCall = toolCalls.find { it.tool == "provide_chat_response" }
 
         if (foundToolCall != null && provideChatResponse != null) {
             val result = provideChatResponse.execute(foundToolCall)
@@ -68,7 +68,7 @@ class ProvideChatResponseToolHandler : ToolHandler {
 
     override fun execute(toolCall: ToolCall): ActionResult {
         return try {
-            val args = Json.parseToJsonElement(toolCall.function.arguments).jsonObject
+            val args = toolCall.args
             val message = args["response"]?.jsonPrimitive?.content
                 ?: args["message"]?.jsonPrimitive?.content
             if (message != null) {
@@ -106,7 +106,7 @@ class SwitchModeToolHandler(
 
     override fun execute(toolCall: ToolCall): ActionResult {
         return try {
-            val args = Json.parseToJsonElement(toolCall.function.arguments).jsonObject
+            val args = toolCall.args
             val modeStr = args["mode"]?.jsonPrimitive?.content
             val mode = when (modeStr) {
                 "idle" -> ChatMode.IDLE
