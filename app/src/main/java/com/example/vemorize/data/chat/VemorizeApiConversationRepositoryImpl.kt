@@ -1,8 +1,8 @@
 package com.example.vemorize.data.chat
 
 import com.example.vemorize.data.clients.vemorizeApi.VemorizeApiClient
-import com.example.vemorize.data.clients.vemorizeApi.dto.ApiLLMContext
-import com.example.vemorize.data.clients.vemorizeApi.dto.LLMApiResponse
+import com.example.vemorize.data.dto.ApiLLMContext
+import com.example.vemorize.data.dto.LLMApiResponse
 import javax.inject.Inject
 
 /**
