@@ -1,7 +1,7 @@
 package com.example.vemorize.domain.chat.modes
 
 import com.example.vemorize.data.chat.ConversationRepository
-import com.example.vemorize.data.clients.vemorize_api.dto.ApiLLMContext
+import com.example.vemorize.data.clients.vemorizeApi.dto.ApiLLMContext
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.commands.VoiceCommand
@@ -12,7 +12,6 @@ import com.example.vemorize.domain.chat.modes.commands.ReadingHelpCommand
 import com.example.vemorize.domain.chat.modes.commands.ReadingSwitchModeCommand
 import com.example.vemorize.domain.chat.modes.commands.StopReadingCommand
 import com.example.vemorize.domain.chat.model.ChatMode
-import com.example.vemorize.domain.chat.model.ChatResponse
 import com.example.vemorize.domain.chat.model.HandlerResponse
 
 /**

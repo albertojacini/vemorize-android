@@ -1,8 +1,8 @@
-package com.example.vemorize.data.clients.vemorize_api
+package com.example.vemorize.data.clients.vemorizeApi
 
 import android.util.Log
-import com.example.vemorize.data.clients.vemorize_api.dto.ApiLLMContext
-import com.example.vemorize.data.clients.vemorize_api.dto.LLMApiResponse
+import com.example.vemorize.data.clients.vemorizeApi.dto.ApiLLMContext
+import com.example.vemorize.data.clients.vemorizeApi.dto.LLMApiResponse
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.ktor.client.request.*

@@ -1,4 +1,4 @@
-package com.example.vemorize.data.clients.vemorize_api.dto
+package com.example.vemorize.data.clients.vemorizeApi.dto
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
