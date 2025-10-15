@@ -1,6 +1,6 @@
 package com.example.vemorize.domain.chat.modes
 
-import com.example.vemorize.data.clients.vemorize_api.VemorizeApiClient
+import com.example.vemorize.data.chat.ConversationRepository
 import com.example.vemorize.data.clients.vemorize_api.dto.ApiLLMContext
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
@@ -16,11 +16,11 @@ import com.example.vemorize.domain.chat.model.HandlerResponse
  * Port of TypeScript IdleHandler from idle/handler.ts
  */
 class IdleModeHandler(
-    vemorizeApiClient: VemorizeApiClient,
+    conversationRepository: ConversationRepository,
     actions: Actions,
     navigationManager: NavigationManager,
     toolRegistry: ToolRegistry
-) : BaseModeHandler(vemorizeApiClient, actions, navigationManager, toolRegistry) {
+) : BaseModeHandler(conversationRepository, actions, navigationManager, toolRegistry) {
 
     override val mode = ChatMode.IDLE
 

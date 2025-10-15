@@ -43,6 +43,12 @@ abstract class ChatRepositoryModule {
     abstract fun bindNavigationRepository(
         impl: SupabaseNavigationRepositoryImpl
     ): NavigationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindConversationRepository(
+        impl: VemorizeApiConversationRepositoryImpl
+    ): ConversationRepository
 }
 
 @Module
@@ -130,7 +136,7 @@ object ChatManagerModule {
         navigationManager: NavigationManager,
         userMemoryManager: UserMemoryManager,
         userPreferencesManager: UserPreferencesManager,
-        vemorizeApiClient: VemorizeApiClient,
+        conversationRepository: ConversationRepository,
         actions: Actions,
         toolRegistry: ToolRegistry,
         userId: String
@@ -139,7 +145,7 @@ object ChatManagerModule {
             navigationManager,
             userMemoryManager,
             userPreferencesManager,
-            vemorizeApiClient,
+            conversationRepository,
             actions,
             toolRegistry,
             userId
