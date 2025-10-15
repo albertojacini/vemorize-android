@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.vemorize.data.courses.AnnotationRepository
 import com.example.vemorize.data.courses.CourseTreeRepository
 import com.example.vemorize.data.courses.CoursesRepository
-import com.example.vemorize.domain.model.annotations.MemorizationState
+import com.example.vemorize.domain.courses.MemorizationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

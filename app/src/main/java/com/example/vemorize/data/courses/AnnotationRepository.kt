@@ -1,7 +1,7 @@
 package com.example.vemorize.data.courses
 
-import com.example.vemorize.domain.model.annotations.Annotation
-import com.example.vemorize.domain.model.annotations.MemorizationState
+import com.example.vemorize.domain.courses.Annotation
+import com.example.vemorize.domain.courses.MemorizationState
 
 /**
  * Repository for managing course node annotations (learning progress tracking)

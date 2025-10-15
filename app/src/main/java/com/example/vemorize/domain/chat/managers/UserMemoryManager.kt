@@ -2,7 +2,7 @@ package com.example.vemorize.domain.chat.managers
 
 import android.util.Log
 import com.example.vemorize.data.chat.UserMemoryRepository
-import com.example.vemorize.domain.model.chat.UserMemory
+import com.example.vemorize.domain.chat.model.UserMemory
 import javax.inject.Inject
 
 /**

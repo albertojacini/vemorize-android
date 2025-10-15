@@ -1,7 +1,7 @@
 package com.example.vemorize.domain.chat
 
 import android.util.Log
-import com.example.vemorize.data.chat.ChatApiClient
+import com.example.vemorize.data.chat.ConversationRepository
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.managers.NavigationManager
@@ -11,8 +11,8 @@ import com.example.vemorize.domain.chat.modes.BaseModeHandler
 import com.example.vemorize.domain.chat.modes.IdleModeHandler
 import com.example.vemorize.domain.chat.modes.QuizModeHandler
 import com.example.vemorize.domain.chat.modes.ReadingModeHandler
-import com.example.vemorize.domain.model.chat.*
-import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.chat.model.*
+import com.example.vemorize.domain.courses.Course
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +25,7 @@ class ChatManager(
     private val navigationManager: NavigationManager,
     private val userMemoryManager: UserMemoryManager,
     private val userPreferencesManager: UserPreferencesManager,
-    private val chatApiClient: ChatApiClient,
+    private val conversationRepository: ConversationRepository,
     private val actions: Actions,
     private val toolRegistry: ToolRegistry,
     private val userId: String
@@ -63,9 +63,9 @@ class ChatManager(
             // Initialize mode handlers
             Log.d(TAG, "Creating mode handlers...")
             handlers = mapOf(
-                ChatMode.IDLE to IdleModeHandler(chatApiClient, actions, navigationManager, toolRegistry),
-                ChatMode.READING to ReadingModeHandler(chatApiClient, actions, navigationManager, toolRegistry),
-                ChatMode.QUIZ to QuizModeHandler(chatApiClient, actions, navigationManager, toolRegistry)
+                ChatMode.IDLE to IdleModeHandler(conversationRepository, actions, navigationManager, toolRegistry),
+                ChatMode.READING to ReadingModeHandler(conversationRepository, actions, navigationManager, toolRegistry),
+                ChatMode.QUIZ to QuizModeHandler(conversationRepository, actions, navigationManager, toolRegistry)
             )
             Log.d(TAG, "Mode handlers created")
 

@@ -28,7 +28,6 @@ import com.example.vemorize.ui.auth.LoginScreen
 import com.example.vemorize.ui.courses.CourseDetailScreen
 import com.example.vemorize.ui.courses.CoursesScreen
 import com.example.vemorize.ui.chat.ChatScreen
-import com.example.vemorize.ui.screens.HomeScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -191,7 +190,11 @@ fun VemorizeApp(
                     )
                 }
                 composable(NavigationItem.Home.route) {
-                    HomeScreen()
+                    CoursesScreen(
+                        onCourseClick = { courseId ->
+                            navController.navigate("courseDetail/$courseId")
+                        }
+                    )
                 }
                 composable(NavigationItem.Courses.route) {
                     CoursesScreen(

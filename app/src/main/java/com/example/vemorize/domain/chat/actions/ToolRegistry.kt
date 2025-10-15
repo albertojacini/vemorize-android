@@ -1,9 +1,9 @@
 package com.example.vemorize.domain.chat.actions
 
 import android.util.Log
-import com.example.vemorize.domain.model.chat.ActionResult
-import com.example.vemorize.domain.model.chat.ChatMode
-import com.example.vemorize.domain.model.chat.ToolCall
+import com.example.vemorize.data.clients.vemorize_api.dto.ToolCall
+import com.example.vemorize.domain.chat.model.ActionResult
+import com.example.vemorize.domain.chat.model.ChatMode
 import kotlinx.serialization.json.*
 import javax.inject.Inject
 

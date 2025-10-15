@@ -1,6 +1,6 @@
 package com.example.vemorize.ui.courses
 
-import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.courses.Course
 
 sealed interface CoursesUiState {
     data object Loading : CoursesUiState

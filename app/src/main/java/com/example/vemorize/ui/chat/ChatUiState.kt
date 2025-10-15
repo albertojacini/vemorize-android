@@ -1,7 +1,7 @@
 package com.example.vemorize.ui.chat
 
-import com.example.vemorize.domain.model.chat.ChatMode
-import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.chat.model.ChatMode
+import com.example.vemorize.domain.courses.Course
 
 /**
  * UI state for chat screen

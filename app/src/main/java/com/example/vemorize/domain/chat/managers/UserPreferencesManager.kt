@@ -2,8 +2,8 @@ package com.example.vemorize.domain.chat.managers
 
 import android.util.Log
 import com.example.vemorize.data.chat.UserPreferencesRepository
-import com.example.vemorize.domain.model.chat.TtsModel
-import com.example.vemorize.domain.model.chat.UserPreferences
+import com.example.vemorize.domain.chat.model.TtsModel
+import com.example.vemorize.domain.chat.model.UserPreferences
 import javax.inject.Inject
 
 /**

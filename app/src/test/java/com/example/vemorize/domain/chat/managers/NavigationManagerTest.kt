@@ -3,10 +3,10 @@ package com.example.vemorize.domain.chat.managers
 import com.example.vemorize.data.chat.NavigationRepository
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.data.courses.CourseTreeRepository
-import com.example.vemorize.domain.model.chat.Navigation
-import com.example.vemorize.domain.model.courses.Course
-import com.example.vemorize.domain.model.courses.CourseNode
-import com.example.vemorize.domain.model.courses.CourseTree
+import com.example.vemorize.domain.chat.model.Navigation
+import com.example.vemorize.domain.courses.Course
+import com.example.vemorize.domain.courses.CourseNode
+import com.example.vemorize.domain.courses.CourseTree
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

@@ -1,7 +1,7 @@
 package com.example.vemorize.domain.model
 
-import com.example.vemorize.domain.model.courses.CourseNode
-import com.example.vemorize.domain.model.courses.CourseTree
+import com.example.vemorize.domain.courses.CourseNode
+import com.example.vemorize.domain.courses.CourseTree
 import org.junit.Assert.*
 import org.junit.Test
 
