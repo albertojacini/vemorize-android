@@ -1,8 +1,8 @@
 package com.example.vemorize.data.courses
 
 import android.util.Log
-import com.example.vemorize.domain.model.courses.CourseNode
-import com.example.vemorize.domain.model.courses.CourseTree
+import com.example.vemorize.domain.courses.CourseNode
+import com.example.vemorize.domain.courses.CourseTree
 import io.github.jan.supabase.postgrest.Postgrest
 import javax.inject.Inject
 

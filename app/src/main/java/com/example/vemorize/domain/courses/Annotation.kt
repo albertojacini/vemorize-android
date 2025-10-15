@@ -1,4 +1,4 @@
-package com.example.vemorize.domain.model.annotations
+package com.example.vemorize.domain.courses
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

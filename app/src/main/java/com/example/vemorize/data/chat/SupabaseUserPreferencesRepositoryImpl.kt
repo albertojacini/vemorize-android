@@ -1,8 +1,8 @@
 package com.example.vemorize.data.chat
 
 import android.util.Log
-import com.example.vemorize.domain.model.chat.TtsModel
-import com.example.vemorize.domain.model.chat.UserPreferences
+import com.example.vemorize.domain.chat.model.TtsModel
+import com.example.vemorize.domain.chat.model.UserPreferences
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
 import javax.inject.Inject

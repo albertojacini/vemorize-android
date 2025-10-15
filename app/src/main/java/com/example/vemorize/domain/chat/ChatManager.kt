@@ -11,8 +11,8 @@ import com.example.vemorize.domain.chat.modes.BaseModeHandler
 import com.example.vemorize.domain.chat.modes.IdleModeHandler
 import com.example.vemorize.domain.chat.modes.QuizModeHandler
 import com.example.vemorize.domain.chat.modes.ReadingModeHandler
-import com.example.vemorize.domain.model.chat.*
-import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.chat.model.*
+import com.example.vemorize.domain.courses.Course
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

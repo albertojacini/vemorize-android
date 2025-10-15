@@ -9,7 +9,7 @@ import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.chat.ChatManager
 import com.example.vemorize.domain.chat.voice.VoiceInputManager
 import com.example.vemorize.domain.chat.voice.VoiceOutputManager
-import com.example.vemorize.domain.model.chat.ChatMode
+import com.example.vemorize.domain.chat.model.ChatMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -1,7 +1,7 @@
 package com.example.vemorize.data.chat
 
-import com.example.vemorize.domain.model.chat.TtsModel
-import com.example.vemorize.domain.model.chat.UserPreferences
+import com.example.vemorize.domain.chat.model.TtsModel
+import com.example.vemorize.domain.chat.model.UserPreferences
 
 interface UserPreferencesRepository {
     /**

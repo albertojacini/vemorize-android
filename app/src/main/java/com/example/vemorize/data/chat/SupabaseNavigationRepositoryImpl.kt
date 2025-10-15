@@ -2,7 +2,7 @@ package com.example.vemorize.data.chat
 
 import android.util.Log
 import com.example.vemorize.data.courses.CourseTreeRepository
-import com.example.vemorize.domain.model.chat.Navigation
+import com.example.vemorize.domain.chat.model.Navigation
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
 import javax.inject.Inject

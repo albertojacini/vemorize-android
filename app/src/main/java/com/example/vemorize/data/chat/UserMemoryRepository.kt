@@ -1,6 +1,6 @@
 package com.example.vemorize.data.chat
 
-import com.example.vemorize.domain.model.chat.UserMemory
+import com.example.vemorize.domain.chat.model.UserMemory
 
 interface UserMemoryRepository {
     /**

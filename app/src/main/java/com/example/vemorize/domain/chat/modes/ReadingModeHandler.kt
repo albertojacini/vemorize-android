@@ -10,10 +10,10 @@ import com.example.vemorize.domain.chat.modes.commands.ReadCurrentCommand
 import com.example.vemorize.domain.chat.modes.commands.ReadingHelpCommand
 import com.example.vemorize.domain.chat.modes.commands.ReadingSwitchModeCommand
 import com.example.vemorize.domain.chat.modes.commands.StopReadingCommand
-import com.example.vemorize.domain.model.chat.ChatMode
-import com.example.vemorize.domain.model.chat.ChatResponse
-import com.example.vemorize.domain.model.chat.HandlerResponse
-import com.example.vemorize.domain.model.chat.ApiLLMContext
+import com.example.vemorize.domain.chat.model.ChatMode
+import com.example.vemorize.domain.chat.model.ChatResponse
+import com.example.vemorize.domain.chat.model.HandlerResponse
+import com.example.vemorize.domain.chat.model.ApiLLMContext
 
 /**
  * Handler for READING mode - reading content with navigation

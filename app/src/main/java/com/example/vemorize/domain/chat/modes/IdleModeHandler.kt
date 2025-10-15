@@ -6,10 +6,10 @@ import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.commands.VoiceCommand
 import com.example.vemorize.domain.chat.managers.NavigationManager
 import com.example.vemorize.domain.chat.modes.commands.IdleSwitchModeCommand
-import com.example.vemorize.domain.model.chat.ChatMode
-import com.example.vemorize.domain.model.chat.ChatResponse
-import com.example.vemorize.domain.model.chat.HandlerResponse
-import com.example.vemorize.domain.model.chat.ApiLLMContext
+import com.example.vemorize.domain.chat.model.ChatMode
+import com.example.vemorize.domain.chat.model.ChatResponse
+import com.example.vemorize.domain.chat.model.HandlerResponse
+import com.example.vemorize.domain.chat.model.ApiLLMContext
 
 /**
  * Handler for IDLE mode - general conversation and mode switching

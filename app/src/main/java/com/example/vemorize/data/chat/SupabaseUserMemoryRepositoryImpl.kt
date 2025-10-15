@@ -1,9 +1,9 @@
 package com.example.vemorize.data.chat
 
 import android.util.Log
-import com.example.vemorize.domain.model.chat.UserAchievements
-import com.example.vemorize.domain.model.chat.UserFacts
-import com.example.vemorize.domain.model.chat.UserMemory
+import com.example.vemorize.domain.chat.model.UserAchievements
+import com.example.vemorize.domain.chat.model.UserFacts
+import com.example.vemorize.domain.chat.model.UserMemory
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
 import javax.inject.Inject

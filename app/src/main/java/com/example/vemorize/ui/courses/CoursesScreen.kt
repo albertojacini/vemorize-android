@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.vemorize.domain.model.courses.Course
+import com.example.vemorize.domain.courses.Course
 import com.example.vemorize.ui.theme.VemorizeTheme
 
 @Composable

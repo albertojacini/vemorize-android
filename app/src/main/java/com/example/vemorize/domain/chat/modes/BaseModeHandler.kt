@@ -6,7 +6,7 @@ import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.commands.VoiceCommand
 import com.example.vemorize.domain.chat.commands.VoiceCommandMatcher
 import com.example.vemorize.domain.chat.managers.NavigationManager
-import com.example.vemorize.domain.model.chat.*
+import com.example.vemorize.domain.chat.model.*
 
 /**
  * Base class for mode handlers

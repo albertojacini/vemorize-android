@@ -1,7 +1,7 @@
 package com.example.vemorize.domain.chat.commands
 
 import com.example.vemorize.domain.chat.actions.Actions
-import com.example.vemorize.domain.model.chat.ChatMode
+import com.example.vemorize.domain.chat.model.ChatMode
 import java.util.Date
 
 /**

@@ -1,6 +1,6 @@
 package com.example.vemorize.data.courses
 
-import com.example.vemorize.domain.model.courses.CourseTree
+import com.example.vemorize.domain.courses.CourseTree
 
 interface CourseTreeRepository {
     suspend fun getCourseTree(courseId: String): CourseTree?

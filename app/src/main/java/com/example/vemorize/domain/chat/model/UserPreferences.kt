@@ -1,4 +1,4 @@
-package com.example.vemorize.domain.model.chat
+package com.example.vemorize.domain.chat.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

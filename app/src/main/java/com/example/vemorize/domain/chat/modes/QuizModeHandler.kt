@@ -9,10 +9,10 @@ import com.example.vemorize.domain.chat.modes.commands.QuizHelpCommand
 import com.example.vemorize.domain.chat.modes.commands.QuizSwitchModeCommand
 import com.example.vemorize.domain.chat.modes.commands.StartQuizCommand
 import com.example.vemorize.domain.chat.modes.commands.StopQuizCommand
-import com.example.vemorize.domain.model.chat.ChatMode
-import com.example.vemorize.domain.model.chat.ChatResponse
-import com.example.vemorize.domain.model.chat.HandlerResponse
-import com.example.vemorize.domain.model.chat.ApiLLMContext
+import com.example.vemorize.domain.chat.model.ChatMode
+import com.example.vemorize.domain.chat.model.ChatResponse
+import com.example.vemorize.domain.chat.model.HandlerResponse
+import com.example.vemorize.domain.chat.model.ApiLLMContext
 
 /**
  * Handler for QUIZ mode - testing knowledge

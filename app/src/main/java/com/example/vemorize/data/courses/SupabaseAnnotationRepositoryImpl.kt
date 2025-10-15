@@ -1,8 +1,8 @@
 package com.example.vemorize.data.courses
 
 import android.util.Log
-import com.example.vemorize.domain.model.annotations.Annotation
-import com.example.vemorize.domain.model.annotations.MemorizationState
+import com.example.vemorize.domain.courses.Annotation
+import com.example.vemorize.domain.courses.MemorizationState
 import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

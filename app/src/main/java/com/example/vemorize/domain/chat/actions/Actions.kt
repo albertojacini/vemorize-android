@@ -1,8 +1,8 @@
 package com.example.vemorize.domain.chat.actions
 
 import com.example.vemorize.domain.chat.managers.NavigationManager
-import com.example.vemorize.domain.model.chat.ActionResult
-import com.example.vemorize.domain.model.chat.ChatMode
+import com.example.vemorize.domain.chat.model.ActionResult
+import com.example.vemorize.domain.chat.model.ChatMode
 import javax.inject.Inject
 
 /**

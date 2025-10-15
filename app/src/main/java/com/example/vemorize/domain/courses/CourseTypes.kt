@@ -1,4 +1,4 @@
-package com.example.vemorize.domain.model.courses
+package com.example.vemorize.domain.courses
 
 enum class NodeType {
     CONTAINER,

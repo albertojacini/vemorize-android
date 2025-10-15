@@ -1,7 +1,7 @@
 package com.example.vemorize.data.auth
 
 import com.example.vemorize.core.di.ApplicationScope
-import com.example.vemorize.domain.model.auth.User
+import com.example.vemorize.domain.auth.User
 import io.github.jan.supabase.gotrue.Auth
 import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.providers.builtin.Email
