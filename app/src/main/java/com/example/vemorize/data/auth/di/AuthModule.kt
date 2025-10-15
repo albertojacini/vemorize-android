@@ -1,7 +1,7 @@
 package com.example.vemorize.data.auth.di
 
 import com.example.vemorize.data.auth.AuthRepository
-import com.example.vemorize.data.auth.AuthRepositoryImpl
+import com.example.vemorize.data.auth.SupabaseAuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,6 +15,6 @@ abstract class AuthModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(
-        authRepositoryImpl: AuthRepositoryImpl
+        impl: SupabaseAuthRepositoryImpl
     ): AuthRepository
 }

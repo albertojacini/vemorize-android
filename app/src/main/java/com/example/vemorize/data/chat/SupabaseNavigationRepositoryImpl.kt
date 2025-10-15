@@ -7,7 +7,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
 import javax.inject.Inject
 
-class NavigationRepositoryImpl @Inject constructor(
+class SupabaseNavigationRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest,
     private val courseTreeRepository: CourseTreeRepository
 ) : NavigationRepository {

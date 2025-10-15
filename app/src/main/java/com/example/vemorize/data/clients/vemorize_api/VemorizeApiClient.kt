@@ -1,8 +1,8 @@
-package com.example.vemorize.data.chat
+package com.example.vemorize.data.clients.vemorize_api
 
 import android.util.Log
-import com.example.vemorize.domain.chat.model.ApiLLMContext
-import com.example.vemorize.domain.chat.model.LLMApiResponse
+import com.example.vemorize.data.clients.vemorize_api.dto.ApiLLMContext
+import com.example.vemorize.data.clients.vemorize_api.dto.LLMApiResponse
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.ktor.client.request.*
@@ -14,16 +14,18 @@ import kotlinx.serialization.encodeToString
 import javax.inject.Inject
 
 /**
- * API client for chat/LLM operations
- * Ports logic from Next.js /api/conversation route
+ * API client for Vemorize Backend (Supabase Edge Functions)
+ *
+ * This client handles communication with the Vemorize API layer
+ * (NOT direct Supabase DB access - that's handled by Supabase*RepositoryImpl classes)
  */
-class ChatApiClient @Inject constructor(
+class VemorizeApiClient @Inject constructor(
     private val supabaseClient: SupabaseClient,
     private val json: Json
 ) {
     /**
-     * Send LLM request to Next.js API and get tool calls response
-     * Matches the contract in /app/api/conversation/route.ts
+     * Send LLM request to chat-llm edge function
+     * Matches the contract in /supabase/functions/chat-llm/index.ts
      */
     suspend fun sendLLMRequest(
         llmContext: ApiLLMContext,
@@ -84,7 +86,7 @@ class ChatApiClient @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "ChatApiClient"
+        private const val TAG = "VemorizeApiClient"
         private const val API_BASE_URL = "http://10.0.2.2:54321"
     }
 }

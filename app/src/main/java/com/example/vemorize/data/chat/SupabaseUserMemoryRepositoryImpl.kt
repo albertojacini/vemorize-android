@@ -8,7 +8,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
 import javax.inject.Inject
 
-class UserMemoryRepositoryImpl @Inject constructor(
+class SupabaseUserMemoryRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest
 ) : UserMemoryRepository {
 

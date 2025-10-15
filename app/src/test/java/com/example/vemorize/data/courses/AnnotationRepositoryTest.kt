@@ -1,6 +1,6 @@
 package com.example.vemorize.data.courses
 
-import com.example.vemorize.domain.model.annotations.MemorizationState
+import com.example.vemorize.domain.courses.MemorizationState
 import io.github.jan.supabase.postgrest.Postgrest
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -21,7 +21,7 @@ class AnnotationRepositoryTest {
     @Before
     fun setup() {
         postgrest = mockk(relaxed = true)
-        repository = AnnotationRepositoryImpl(postgrest)
+        repository = SupabaseAnnotationRepositoryImpl(postgrest)
     }
 
     @Test

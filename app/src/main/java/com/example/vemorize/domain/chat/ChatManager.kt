@@ -1,7 +1,7 @@
 package com.example.vemorize.domain.chat
 
 import android.util.Log
-import com.example.vemorize.data.chat.ChatApiClient
+import com.example.vemorize.data.clients.vemorize_api.VemorizeApiClient
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.managers.NavigationManager
@@ -25,7 +25,7 @@ class ChatManager(
     private val navigationManager: NavigationManager,
     private val userMemoryManager: UserMemoryManager,
     private val userPreferencesManager: UserPreferencesManager,
-    private val chatApiClient: ChatApiClient,
+    private val vemorizeApiClient: VemorizeApiClient,
     private val actions: Actions,
     private val toolRegistry: ToolRegistry,
     private val userId: String
@@ -63,9 +63,9 @@ class ChatManager(
             // Initialize mode handlers
             Log.d(TAG, "Creating mode handlers...")
             handlers = mapOf(
-                ChatMode.IDLE to IdleModeHandler(chatApiClient, actions, navigationManager, toolRegistry),
-                ChatMode.READING to ReadingModeHandler(chatApiClient, actions, navigationManager, toolRegistry),
-                ChatMode.QUIZ to QuizModeHandler(chatApiClient, actions, navigationManager, toolRegistry)
+                ChatMode.IDLE to IdleModeHandler(vemorizeApiClient, actions, navigationManager, toolRegistry),
+                ChatMode.READING to ReadingModeHandler(vemorizeApiClient, actions, navigationManager, toolRegistry),
+                ChatMode.QUIZ to QuizModeHandler(vemorizeApiClient, actions, navigationManager, toolRegistry)
             )
             Log.d(TAG, "Mode handlers created")
 

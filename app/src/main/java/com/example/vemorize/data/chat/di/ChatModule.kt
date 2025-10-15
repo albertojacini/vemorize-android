@@ -2,6 +2,7 @@ package com.example.vemorize.data.chat.di
 
 import com.example.vemorize.data.auth.AuthRepository
 import com.example.vemorize.data.chat.*
+import com.example.vemorize.data.clients.vemorize_api.VemorizeApiClient
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.data.courses.CourseTreeRepository
 import com.example.vemorize.domain.chat.ChatManager
@@ -28,19 +29,19 @@ abstract class ChatRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserPreferencesRepository(
-        impl: UserPreferencesRepositoryImpl
+        impl: SupabaseUserPreferencesRepositoryImpl
     ): UserPreferencesRepository
 
     @Binds
     @Singleton
     abstract fun bindUserMemoryRepository(
-        impl: UserMemoryRepositoryImpl
+        impl: SupabaseUserMemoryRepositoryImpl
     ): UserMemoryRepository
 
     @Binds
     @Singleton
     abstract fun bindNavigationRepository(
-        impl: NavigationRepositoryImpl
+        impl: SupabaseNavigationRepositoryImpl
     ): NavigationRepository
 }
 
@@ -59,11 +60,11 @@ object ChatUtilModule {
 
     @Provides
     @Singleton
-    fun provideChatApiClient(
+    fun provideVemorizeApiClient(
         supabaseClient: SupabaseClient,
         json: Json
-    ): ChatApiClient {
-        return ChatApiClient(supabaseClient, json)
+    ): VemorizeApiClient {
+        return VemorizeApiClient(supabaseClient, json)
     }
 }
 
@@ -129,7 +130,7 @@ object ChatManagerModule {
         navigationManager: NavigationManager,
         userMemoryManager: UserMemoryManager,
         userPreferencesManager: UserPreferencesManager,
-        chatApiClient: ChatApiClient,
+        vemorizeApiClient: VemorizeApiClient,
         actions: Actions,
         toolRegistry: ToolRegistry,
         userId: String
@@ -138,7 +139,7 @@ object ChatManagerModule {
             navigationManager,
             userMemoryManager,
             userPreferencesManager,
-            chatApiClient,
+            vemorizeApiClient,
             actions,
             toolRegistry,
             userId

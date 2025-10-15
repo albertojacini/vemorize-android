@@ -6,7 +6,7 @@ import com.example.vemorize.domain.courses.CourseTree
 import io.github.jan.supabase.postgrest.Postgrest
 import javax.inject.Inject
 
-class CourseTreeRepositoryImpl @Inject constructor(
+class SupabaseCourseTreeRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest
 ) : CourseTreeRepository {
 

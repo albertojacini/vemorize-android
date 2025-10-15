@@ -1,6 +1,7 @@
 package com.example.vemorize.domain.chat.modes
 
-import com.example.vemorize.data.chat.ChatApiClient
+import com.example.vemorize.data.clients.vemorize_api.VemorizeApiClient
+import com.example.vemorize.data.clients.vemorize_api.dto.ApiLLMContext
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.commands.VoiceCommand
@@ -9,18 +10,17 @@ import com.example.vemorize.domain.chat.modes.commands.IdleSwitchModeCommand
 import com.example.vemorize.domain.chat.model.ChatMode
 import com.example.vemorize.domain.chat.model.ChatResponse
 import com.example.vemorize.domain.chat.model.HandlerResponse
-import com.example.vemorize.domain.chat.model.ApiLLMContext
 
 /**
  * Handler for IDLE mode - general conversation and mode switching
  * Port of TypeScript IdleHandler from idle/handler.ts
  */
 class IdleModeHandler(
-    chatApiClient: ChatApiClient,
+    vemorizeApiClient: VemorizeApiClient,
     actions: Actions,
     navigationManager: NavigationManager,
     toolRegistry: ToolRegistry
-) : BaseModeHandler(chatApiClient, actions, navigationManager, toolRegistry) {
+) : BaseModeHandler(vemorizeApiClient, actions, navigationManager, toolRegistry) {
 
     override val mode = ChatMode.IDLE
 

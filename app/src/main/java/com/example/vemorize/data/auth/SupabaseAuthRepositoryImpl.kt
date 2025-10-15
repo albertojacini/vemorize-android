@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-class AuthRepositoryImpl @Inject constructor(
+class SupabaseAuthRepositoryImpl @Inject constructor(
     private val auth: Auth,
     @ApplicationScope private val scope: CoroutineScope
 ) : AuthRepository {

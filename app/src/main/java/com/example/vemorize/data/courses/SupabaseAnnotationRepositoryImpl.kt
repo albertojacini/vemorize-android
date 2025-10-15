@@ -38,7 +38,7 @@ import javax.inject.Inject
  * - We add audit logging, analytics, or complex state transitions
  * ════════════════════════════════════════════════════════════════════════════
  */
-class AnnotationRepositoryImpl @Inject constructor(
+class SupabaseAnnotationRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest
 ) : AnnotationRepository {
 

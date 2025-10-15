@@ -7,7 +7,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.datetime.Clock
 import javax.inject.Inject
 
-class UserPreferencesRepositoryImpl @Inject constructor(
+class SupabaseUserPreferencesRepositoryImpl @Inject constructor(
     private val postgrest: Postgrest
 ) : UserPreferencesRepository {
 

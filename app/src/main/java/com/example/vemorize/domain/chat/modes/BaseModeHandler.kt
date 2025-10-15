@@ -1,6 +1,7 @@
 package com.example.vemorize.domain.chat.modes
 
-import com.example.vemorize.data.chat.ChatApiClient
+import com.example.vemorize.data.clients.vemorize_api.VemorizeApiClient
+import com.example.vemorize.data.clients.vemorize_api.dto.ApiLLMContext
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.commands.VoiceCommand
@@ -13,7 +14,7 @@ import com.example.vemorize.domain.chat.model.*
  * Port of TypeScript Handler from base.ts
  */
 abstract class BaseModeHandler(
-    protected val chatApiClient: ChatApiClient,
+    protected val vemorizeApiClient: VemorizeApiClient,
     protected val actions: Actions,
     protected val navigationManager: NavigationManager,
     protected val toolRegistry: ToolRegistry
@@ -102,7 +103,7 @@ abstract class BaseModeHandler(
 
             // Call API
             android.util.Log.d(TAG, "handleConversationalInput: calling API...")
-            val response = chatApiClient.sendLLMRequest(
+            val response = vemorizeApiClient.sendLLMRequest(
                 llmContext = llmContext,
                 courseId = course.id,
                 userId = course.userId
