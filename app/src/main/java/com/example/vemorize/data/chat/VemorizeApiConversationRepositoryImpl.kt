@@ -1,8 +1,8 @@
 package com.example.vemorize.data.chat
 
 import android.util.Log
-import com.example.vemorize.data.dto.ApiLLMContext
-import com.example.vemorize.data.dto.LLMApiResponse
+import com.example.vemorize.data.dto.vemorize_api.ApiLLMContext
+import com.example.vemorize.data.dto.vemorize_api.LLMApiResponse
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.ktor.client.request.*

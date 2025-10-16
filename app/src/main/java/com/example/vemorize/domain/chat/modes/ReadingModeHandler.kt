@@ -1,7 +1,7 @@
 package com.example.vemorize.domain.chat.modes
 
 import com.example.vemorize.data.chat.ConversationRepository
-import com.example.vemorize.data.dto.ApiLLMContext
+import com.example.vemorize.data.dto.vemorize_api.ApiLLMContext
 import com.example.vemorize.domain.chat.actions.Actions
 import com.example.vemorize.domain.chat.actions.ToolRegistry
 import com.example.vemorize.domain.chat.commands.VoiceCommand

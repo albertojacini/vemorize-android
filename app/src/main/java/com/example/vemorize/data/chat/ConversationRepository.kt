@@ -1,7 +1,7 @@
 package com.example.vemorize.data.chat
 
-import com.example.vemorize.data.dto.ApiLLMContext
-import com.example.vemorize.data.dto.LLMApiResponse
+import com.example.vemorize.data.dto.vemorize_api.ApiLLMContext
+import com.example.vemorize.data.dto.vemorize_api.LLMApiResponse
 
 /**
  * Repository for conversation/LLM operations
