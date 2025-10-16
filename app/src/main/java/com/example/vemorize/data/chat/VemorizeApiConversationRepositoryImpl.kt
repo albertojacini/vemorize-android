@@ -3,13 +3,14 @@ package com.example.vemorize.data.chat
 import android.util.Log
 import com.example.vemorize.data.dto.vemorize_api.ApiLLMContext
 import com.example.vemorize.data.dto.vemorize_api.LLMApiResponse
+import com.example.vemorize.data.dto.vemorize_api.LLMRequest
+import com.example.vemorize.data.dto.vemorize_api.RequestData
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.*
 import kotlinx.serialization.encodeToString
 import javax.inject.Inject
 
@@ -32,21 +33,13 @@ class VemorizeApiConversationRepositoryImpl @Inject constructor(
             ?: throw IllegalStateException("No active session")
 
         // Build request body matching ApiLLMRequestSchema
-        val requestBody = buildJsonObject {
-            putJsonObject("llmContext") {
-                put("userMessage", llmContext.userMessage)
-                putJsonArray("toolNames") {
-                    llmContext.toolNames.forEach { add(it) }
-                }
-                put("mode", llmContext.mode)
-                llmContext.userMemory?.let { put("userMemory", it) }
-                llmContext.leafReprForPrompt?.let { put("leafReprForPrompt", it) }
-            }
-            putJsonObject("data") {
-                put("courseId", courseId)
-                put("userId", userId)
-            }
-        }
+        val requestBody = LLMRequest(
+            data = RequestData(
+                courseId = courseId,
+                userId = userId
+            ),
+            llmContext = llmContext
+        )
 
         Log.d(TAG, "Sending LLM request to $API_BASE_URL/functions/v1/chat-llm")
         Log.d(TAG, "Request body: $requestBody")

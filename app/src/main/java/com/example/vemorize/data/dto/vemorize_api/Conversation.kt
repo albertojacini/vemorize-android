@@ -11,12 +11,25 @@ import kotlinx.serialization.json.JsonObject
 /**
  * API LLM Context - matches TypeScript ApiLLMContext
  */
+@Serializable
 data class ApiLLMContext(
     val userMessage: String,
     val toolNames: List<String>,
     val mode: String,
     val userMemory: String? = null,
     val leafReprForPrompt: String? = null
+)
+
+@Serializable
+data class RequestData(
+    val courseId: String,
+    val userId: String,
+)
+
+@Serializable
+data class LLMRequest(
+    val data: RequestData,
+    val llmContext: ApiLLMContext
 )
 
 /**
