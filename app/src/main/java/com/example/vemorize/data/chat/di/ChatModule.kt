@@ -48,6 +48,12 @@ abstract class ChatRepositoryModule {
     abstract fun bindConversationRepository(
         impl: VemorizeApiConversationRepositoryImpl
     ): ConversationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTtsRepository(
+        impl: VemorizeApiTtsRepositoryImpl
+    ): TtsRepository
 }
 
 @Module

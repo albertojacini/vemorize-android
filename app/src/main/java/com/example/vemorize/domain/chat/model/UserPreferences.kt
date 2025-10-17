@@ -24,6 +24,6 @@ data class UserPreferences(
 enum class TtsModel {
     @SerialName("local")
     LOCAL,
-    @SerialName("cloud")
-    CLOUD
+    @SerialName("openai-gpt-4o-mini")
+    OPENAI_GPT_4O_MINI
 }
