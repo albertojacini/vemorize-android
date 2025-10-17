@@ -17,7 +17,8 @@ sealed class ChatUiState {
         val isListening: Boolean = false,
         val isSpeaking: Boolean = false,
         val partialTranscript: String? = null,
-        val voiceError: String? = null
+        val voiceError: String? = null,
+        val ttsError: String? = null
     ) : ChatUiState()
     data class Error(val message: String) : ChatUiState()
 }
@@ -34,4 +35,5 @@ sealed class ChatUiEvent {
     object ToggleVoiceListening : ChatUiEvent()
     object StopVoiceOutput : ChatUiEvent()
     object ClearVoiceError : ChatUiEvent()
+    object ClearTtsError : ChatUiEvent()
 }

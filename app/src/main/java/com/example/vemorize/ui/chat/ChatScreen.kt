@@ -161,6 +161,34 @@ fun ChatScreenContent(
                             }
                         }
 
+                        // TTS error display
+                        if (uiState.ttsError != null) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = uiState.ttsError,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(onClick = { onEvent(ChatUiEvent.ClearTtsError) }) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Dismiss TTS error",
+                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         // Messages list (DEBUG: bordered)
                         Column(
                             modifier = Modifier

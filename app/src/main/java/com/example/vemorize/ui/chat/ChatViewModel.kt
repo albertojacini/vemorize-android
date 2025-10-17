@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vemorize.data.auth.AuthRepository
+import com.example.vemorize.data.chat.TtsException
 import com.example.vemorize.data.chat.TtsRepository
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.chat.ChatManager
@@ -195,12 +196,26 @@ class ChatViewModel @Inject constructor(
                     val ttsModel = chatResponse.ttsModel
                     android.util.Log.d(TAG, "Speaking response with TTS model: $ttsModel, speed: $speed")
                     viewModelScope.launch {
-                        voiceOutputManager.speak(
-                            text = chatResponse.message,
-                            speed = speed,
-                            language = chatResponse.voiceLang,
-                            ttsModel = ttsModel
-                        )
+                        try {
+                            voiceOutputManager.speak(
+                                text = chatResponse.message,
+                                speed = speed,
+                                language = chatResponse.voiceLang,
+                                ttsModel = ttsModel
+                            )
+                        } catch (e: TtsException) {
+                            android.util.Log.e(TAG, "TTS error: ${e.message}", e)
+                            val currentState = _uiState.value as? ChatUiState.Ready ?: return@launch
+                            _uiState.value = currentState.copy(
+                                ttsError = e.details ?: e.message ?: "TTS failed"
+                            )
+                        } catch (e: Exception) {
+                            android.util.Log.e(TAG, "Unexpected TTS error", e)
+                            val currentState = _uiState.value as? ChatUiState.Ready ?: return@launch
+                            _uiState.value = currentState.copy(
+                                ttsError = "TTS failed: ${e.message}"
+                            )
+                        }
                     }
                 }
 
@@ -240,6 +255,7 @@ class ChatViewModel @Inject constructor(
             ChatUiEvent.ToggleVoiceListening -> toggleVoiceListening()
             ChatUiEvent.StopVoiceOutput -> stopVoiceOutput()
             ChatUiEvent.ClearVoiceError -> clearVoiceError()
+            ChatUiEvent.ClearTtsError -> clearTtsError()
         }
     }
 
@@ -277,6 +293,11 @@ class ChatViewModel @Inject constructor(
         if (::voiceOutputManager.isInitialized) {
             voiceOutputManager.clearError()
         }
+    }
+
+    private fun clearTtsError() {
+        val currentState = _uiState.value as? ChatUiState.Ready ?: return
+        _uiState.value = currentState.copy(ttsError = null)
     }
 
     private fun sendMessage(message: String) {
