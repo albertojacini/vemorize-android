@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.vemorize.data.auth.AuthRepository
+import com.example.vemorize.data.chat.TtsRepository
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.chat.ChatManager
 import com.example.vemorize.domain.chat.voice.VoiceInputManager
@@ -23,6 +24,7 @@ class ChatViewModel @Inject constructor(
     private val chatManager: ChatManager,
     private val coursesRepository: CoursesRepository,
     private val authRepository: AuthRepository,
+    private val ttsRepository: TtsRepository,
     private val application: Application,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -90,9 +92,12 @@ class ChatViewModel @Inject constructor(
         voiceInputManager = VoiceInputManager(application)
         voiceInputManager.initialize()
 
-        // Initialize voice output
-        voiceOutputManager = VoiceOutputManager(application)
-        voiceOutputManager.initialize()
+        // Initialize voice output with TTS repository for cloud TTS support
+        voiceOutputManager = VoiceOutputManager(application, ttsRepository)
+
+        // Initialize with mode-specific TTS model
+        val ttsModel = chatManager.getTtsModel()
+        voiceOutputManager.initialize(ttsModel)
 
         // Set up voice output callbacks
         voiceOutputManager.onSpeakingFinished = {
@@ -183,12 +188,20 @@ class ChatViewModel @Inject constructor(
                 val systemVoiceExchangeMessage = VoiceExchangeMessage(content = chatResponse.message, isFromUser = false)
                 val updatedState = _uiState.value as? ChatUiState.Ready ?: return@launch
 
-                // Speak the response
+                // Speak the response with mode-specific TTS
                 if (chatResponse.message.isNotBlank()) {
-                    // Get speech speed from ChatResponse (already includes mode-specific speed)
+                    // Get speech speed and TTS model from ChatResponse (already includes mode-specific values)
                     val speed = chatResponse.speechSpeed ?: 1.0f
-                    android.util.Log.d(TAG, "Speaking response message: ${chatResponse.message}")
-                    voiceOutputManager.speak(chatResponse.message, speed)
+                    val ttsModel = chatResponse.ttsModel
+                    android.util.Log.d(TAG, "Speaking response with TTS model: $ttsModel, speed: $speed")
+                    viewModelScope.launch {
+                        voiceOutputManager.speak(
+                            text = chatResponse.message,
+                            speed = speed,
+                            language = chatResponse.voiceLang,
+                            ttsModel = ttsModel
+                        )
+                    }
                 }
 
                 // Sync current mode from NavigationManager (in case voice command changed it)

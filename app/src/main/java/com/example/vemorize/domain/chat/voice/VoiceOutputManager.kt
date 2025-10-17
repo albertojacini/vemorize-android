@@ -1,21 +1,36 @@
 package com.example.vemorize.domain.chat.voice
 
 import android.content.Context
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.example.vemorize.data.chat.TtsRepository
+import com.example.vemorize.domain.chat.model.TtsModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.Locale
+import kotlinx.coroutines.launch
 
 /**
- * Manages voice output using Android TextToSpeech API
+ * Manages voice output using pluggable TTS providers
+ * Delegates to LocalTtsProvider or CloudTtsProvider based on TtsModel
  */
-class VoiceOutputManager(private val context: Context) {
+class VoiceOutputManager(
+    private val context: Context,
+    private val ttsRepository: TtsRepository? = null
+) {
 
-    private var tts: TextToSpeech? = null
-    private var isInitialized = false
+    // Current active provider
+    private var currentProvider: TtsProvider? = null
+
+    // Lazy-initialized providers
+    private val localProvider by lazy { LocalTtsProvider(context) }
+    private val cloudProvider by lazy {
+        if (ttsRepository == null) {
+            throw IllegalStateException("TtsRepository required for cloud TTS")
+        }
+        CloudTtsProvider(context, ttsRepository, localProvider)
+    }
 
     private val _isSpeaking = MutableStateFlow(false)
     val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
@@ -34,107 +49,141 @@ class VoiceOutputManager(private val context: Context) {
     var onSpeakingFinished: (() -> Unit)? = null
 
     /**
-     * Initialize TextToSpeech
+     * Initialize TTS with the specified model
+     * @param ttsModel The TTS model to use (LOCAL or OPENAI_GPT_4O_MINI)
      */
-    fun initialize() {
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                Log.d(TAG, "TextToSpeech initialized successfully")
+    fun initialize(ttsModel: TtsModel = TtsModel.LOCAL) {
+        Log.d(TAG, "Initializing VoiceOutputManager with model: $ttsModel")
 
-                // Set default language to US English
-                val result = tts?.setLanguage(Locale.US)
+        currentProvider = when (ttsModel) {
+            TtsModel.LOCAL -> localProvider
+            TtsModel.OPENAI_GPT_4O_MINI -> cloudProvider
+        }
 
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "Language not supported")
-                    _error.value = "Language not supported"
-                    isInitialized = false
-                } else {
-                    isInitialized = true
-                    onInitialized?.invoke()
-                }
-
-                // Set up utterance progress listener
-                tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                        Log.d(TAG, "Started speaking: $utteranceId")
-                        _isSpeaking.value = true
-                    }
-
-                    override fun onDone(utteranceId: String?) {
-                        Log.d(TAG, "Finished speaking: $utteranceId")
-                        _isSpeaking.value = false
-                        onSpeakingFinished?.invoke()
-                    }
-
-                    override fun onError(utteranceId: String?) {
-                        Log.e(TAG, "Error speaking: $utteranceId")
-                        _isSpeaking.value = false
-                        _error.value = "Speech synthesis error"
-                    }
-                })
-            } else {
-                Log.e(TAG, "TextToSpeech initialization failed")
-                _error.value = "Failed to initialize text-to-speech"
-                isInitialized = false
-            }
+        currentProvider?.initialize {
+            Log.d(TAG, "TTS provider initialized: $ttsModel")
+            onInitialized?.invoke()
         }
     }
 
     /**
-     * Speak the given text
+     * Speak the given text using the configured provider
      *
      * @param text Text to speak
-     * @param speed Speech rate (0.5 - 2.0, default 1.0)
+     * @param speed Speech rate (0.25 to 4.0)
      * @param language Language code (e.g., "en-US", "de-DE")
+     * @param ttsModel TTS model to use (if different from initialized)
      */
-    fun speak(text: String, speed: Float = 1.0f, language: String? = null) {
-        if (!isInitialized) {
-            Log.e(TAG, "TextToSpeech not initialized")
-            _error.value = "Text-to-speech not initialized"
-            return
-        }
+    suspend fun speak(
+        text: String,
+        speed: Float = 1.0f,
+        language: String? = null,
+        ttsModel: TtsModel? = null
+    ) {
+        // Switch provider if different model requested
+        val targetProvider = if (ttsModel != null && getProviderForModel(ttsModel) != currentProvider) {
+            Log.d(TAG, "Switching to provider for model: $ttsModel")
+            val newProvider = getProviderForModel(ttsModel)
 
-        if (text.isBlank()) {
-            Log.w(TAG, "Cannot speak empty text")
-            return
-        }
-
-        // Set language if provided
-        if (language != null) {
-            val locale = Locale.forLanguageTag(language)
-            val result = tts?.setLanguage(locale)
-
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.w(TAG, "Language $language not supported, using default")
+            // Initialize if not ready
+            if (!newProvider.isReady()) {
+                newProvider.initialize()
             }
+
+            currentProvider = newProvider
+            newProvider
+        } else {
+            currentProvider
         }
 
-        // Set speech rate (clamp between 0.5 and 2.0)
-        val clampedSpeed = speed.coerceIn(0.5f, 2.0f)
-        tts?.setSpeechRate(clampedSpeed)
+        if (targetProvider == null) {
+            Log.e(TAG, "No TTS provider initialized")
+            _error.value = "TTS not initialized"
+            return
+        }
 
-        // Speak
-        Log.d(TAG, "Speaking: \"$text\" (speed: $clampedSpeed, language: $language)")
+        if (!targetProvider.isReady()) {
+            Log.e(TAG, "TTS provider not ready")
+            _error.value = "TTS not ready"
+            return
+        }
+
         _error.value = null
 
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, text.hashCode().toString())
+        targetProvider.speak(
+            text = text,
+            speed = speed,
+            language = language,
+            onStart = {
+                _isSpeaking.value = true
+            },
+            onComplete = {
+                _isSpeaking.value = false
+                onSpeakingFinished?.invoke()
+            },
+            onError = { error ->
+                _isSpeaking.value = false
+                _error.value = error
+            }
+        )
+    }
+
+    /**
+     * Convenience method for synchronous-style API (backwards compatibility)
+     */
+    fun speak(text: String, speed: Float = 1.0f, language: String? = null) {
+        if (currentProvider == null) {
+            Log.e(TAG, "No TTS provider initialized")
+            _error.value = "TTS not initialized"
+            return
+        }
+
+        if (!currentProvider!!.isReady()) {
+            Log.e(TAG, "TTS provider not ready")
+            _error.value = "TTS not ready"
+            return
+        }
+
+        // Use local provider for synchronous API (to maintain backwards compatibility)
+        localProvider.initialize()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            localProvider.speak(
+                text = text,
+                speed = speed,
+                language = language,
+                onStart = { _isSpeaking.value = true },
+                onComplete = {
+                    _isSpeaking.value = false
+                    onSpeakingFinished?.invoke()
+                },
+                onError = { error ->
+                    _isSpeaking.value = false
+                    _error.value = error
+                }
+            )
+        }
+    }
+
+    private fun getProviderForModel(ttsModel: TtsModel): TtsProvider {
+        return when (ttsModel) {
+            TtsModel.LOCAL -> localProvider
+            TtsModel.OPENAI_GPT_4O_MINI -> cloudProvider
+        }
     }
 
     /**
      * Stop speaking immediately
      */
     fun stop() {
-        if (isInitialized && _isSpeaking.value) {
-            Log.d(TAG, "Stopping speech")
-            tts?.stop()
-            _isSpeaking.value = false
-        }
+        currentProvider?.stop()
+        _isSpeaking.value = false
     }
 
     /**
      * Check if TTS is initialized and ready
      */
-    fun isReady(): Boolean = isInitialized
+    fun isReady(): Boolean = currentProvider?.isReady() ?: false
 
     /**
      * Clear error
@@ -148,10 +197,11 @@ class VoiceOutputManager(private val context: Context) {
      */
     fun destroy() {
         Log.d(TAG, "Destroying VoiceOutputManager")
-        tts?.stop()
-        tts?.shutdown()
-        tts = null
-        isInitialized = false
+        localProvider.destroy()
+        if (ttsRepository != null) {
+            cloudProvider.destroy()
+        }
+        currentProvider = null
         _isSpeaking.value = false
     }
 

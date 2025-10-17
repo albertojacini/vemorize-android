@@ -116,6 +116,16 @@ class ChatManager(
     }
 
     /**
+     * Get TTS model based on current mode
+     * Uses mode handler's preferred TTS model
+     */
+    fun getModeSpecificTtsModel(): TtsModel {
+        val handler = handlers[navigationManager.mode]
+            ?: return TtsModel.LOCAL
+        return handler.getPreferredTtsModel()
+    }
+
+    /**
      * Main entry point for handling user input
      */
     suspend fun handleInput(userInput: String): ChatResponse {
@@ -129,11 +139,12 @@ class ChatManager(
         // Handle input
         val handlerResponse = handler.handleUserInput(userInput)
 
-        // Build final response with speech speed
+        // Build final response with speech speed and TTS model
         return ChatResponse(
             message = handlerResponse.message,
             voiceLang = handlerResponse.voiceLang,
             speechSpeed = getModeSpecificSpeechSpeed(),
+            ttsModel = getModeSpecificTtsModel(),
             handlerResponse = handlerResponse as? HandlerResponse
         )
     }

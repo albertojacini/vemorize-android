@@ -149,4 +149,10 @@ abstract class BaseModeHandler(
      * Handle conversation errors with mode-specific fallbacks
      */
     protected abstract fun handleConversationError(error: Exception): HandlerResponse
+
+    /**
+     * Get preferred TTS model for this mode
+     * Override to specify mode-specific TTS preferences
+     */
+    open fun getPreferredTtsModel(): TtsModel = TtsModel.LOCAL
 }

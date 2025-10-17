@@ -9,6 +9,7 @@ data class ChatResponse(
     val message: String,
     val voiceLang: String? = null,
     val speechSpeed: Float? = null,
+    val ttsModel: TtsModel? = null,
     val handlerResponse: HandlerResponse? = null
 )
 

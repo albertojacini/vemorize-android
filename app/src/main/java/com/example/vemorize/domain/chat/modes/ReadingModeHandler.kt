@@ -13,6 +13,7 @@ import com.example.vemorize.domain.chat.modes.commands.ReadingSwitchModeCommand
 import com.example.vemorize.domain.chat.modes.commands.StopReadingCommand
 import com.example.vemorize.domain.chat.model.ChatMode
 import com.example.vemorize.domain.chat.model.HandlerResponse
+import com.example.vemorize.domain.chat.model.TtsModel
 
 /**
  * Handler for READING mode - reading content with navigation
@@ -81,5 +82,9 @@ class ReadingModeHandler(
             generatedBy = mode,
             message = "Sorry, I had trouble processing that in reading mode. Please try again."
         )
+    }
+
+    override fun getPreferredTtsModel(): TtsModel {
+        return TtsModel.OPENAI_GPT_4O_MINI
     }
 }
