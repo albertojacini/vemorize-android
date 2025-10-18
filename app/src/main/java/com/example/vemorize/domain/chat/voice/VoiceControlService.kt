@@ -23,6 +23,7 @@ class VoiceControlService : LifecycleService() {
 
     private var currentState: VoiceControlState = VoiceControlState.Stopped
     private var voiceInputManager: VoiceInputManager? = null
+    private var wakeWordDetector: PorcupineWakeWordDetector? = null
 
     // Inactivity timer
     private val handler = Handler(Looper.getMainLooper())
@@ -33,6 +34,7 @@ class VoiceControlService : LifecycleService() {
         Log.d(TAG, "VoiceControlService onCreate")
         createNotificationChannel()
         initializeVoiceInput()
+        initializeWakeWordDetector()
     }
 
     private fun initializeVoiceInput() {
@@ -72,6 +74,21 @@ class VoiceControlService : LifecycleService() {
                     resetInactivityTimer()
                 }
             }
+        }
+    }
+
+    private fun initializeWakeWordDetector() {
+        // TODO: Replace with actual Porcupine access key from configuration
+        // Get a free access key from https://console.picovoice.ai/
+        val accessKey = "YOUR_PORCUPINE_ACCESS_KEY_HERE"
+
+        try {
+            wakeWordDetector = PorcupineWakeWordDetector(applicationContext, accessKey)
+            // Note: We don't initialize yet - will do that when transitioning to WakeWordMode
+            Log.d(TAG, "PorcupineWakeWordDetector created")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create PorcupineWakeWordDetector. Please configure a valid Porcupine access key.", e)
+            wakeWordDetector = null
         }
     }
 
@@ -122,16 +139,17 @@ class VoiceControlService : LifecycleService() {
             is VoiceControlState.Stopped -> {
                 cancelInactivityTimer()
                 stopListening()
+                stopWakeWordDetection()
             }
             is VoiceControlState.ActiveListening -> {
+                stopWakeWordDetection()
                 startListening()
                 startInactivityTimer() // Start 60-second timer
             }
             is VoiceControlState.WakeWordMode -> {
                 cancelInactivityTimer()
                 stopListening()
-                // Wake word detection will be implemented in next step
-                Log.d(TAG, "WakeWordMode not yet implemented")
+                startWakeWordDetection()
             }
         }
     }
@@ -150,13 +168,48 @@ class VoiceControlService : LifecycleService() {
         voiceInputManager?.stopListening()
     }
 
+    private fun startWakeWordDetection() {
+        Log.d(TAG, "Starting wake word detection")
+
+        val detector = wakeWordDetector
+        if (detector == null) {
+            Log.w(TAG, "Wake word detector not initialized - cannot start detection")
+            return
+        }
+
+        try {
+            // Initialize with callback to transition back to ActiveListening
+            detector.initialize(wakeWord = "porcupine") {
+                Log.d(TAG, "Wake word detected!")
+                // This will be handled in Step 8
+                // For now, just log it
+            }
+
+            // Start detection
+            detector.start()
+            Log.d(TAG, "Wake word detection started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start wake word detection", e)
+        }
+    }
+
+    private fun stopWakeWordDetection() {
+        Log.d(TAG, "Stopping wake word detection")
+        wakeWordDetector?.stop()
+    }
+
     private fun stopVoiceControl() {
         Log.d(TAG, "Stopping voice control service")
 
         cancelInactivityTimer()
         stopListening()
+        stopWakeWordDetection()
+
         voiceInputManager?.destroy()
         voiceInputManager = null
+
+        wakeWordDetector?.destroy()
+        wakeWordDetector = null
 
         currentState = VoiceControlState.Stopped
         stopForeground(STOP_FOREGROUND_REMOVE)
