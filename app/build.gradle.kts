@@ -76,6 +76,9 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
 
+    // Porcupine Wake Word Detection
+    implementation("ai.picovoice:porcupine-android:3.0.0")
+
     // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
