@@ -180,9 +180,8 @@ class VoiceControlService : LifecycleService() {
         try {
             // Initialize with callback to transition back to ActiveListening
             detector.initialize(wakeWord = "porcupine") {
-                Log.d(TAG, "Wake word detected!")
-                // This will be handled in Step 8
-                // For now, just log it
+                Log.d(TAG, "Wake word detected! Transitioning back to ACTIVE_LISTENING")
+                onWakeWordDetected()
             }
 
             // Start detection
@@ -191,6 +190,17 @@ class VoiceControlService : LifecycleService() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start wake word detection", e)
         }
+    }
+
+    /**
+     * Called when wake word is detected
+     * Transitions back to ActiveListening state
+     */
+    private fun onWakeWordDetected() {
+        Log.d(TAG, "Processing wake word detection")
+
+        // Transition back to active listening
+        transitionToState(VoiceControlState.ActiveListening)
     }
 
     private fun stopWakeWordDetection() {
