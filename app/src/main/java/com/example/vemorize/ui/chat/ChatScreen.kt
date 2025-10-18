@@ -104,6 +104,13 @@ fun ChatScreenContent(
                             }
                         }
 
+                        // Voice Control Service controls
+                        VoiceControlServiceBanner(
+                            serviceState = uiState.voiceControlServiceState,
+                            onStartService = { onEvent(ChatUiEvent.StartVoiceControlService) },
+                            onStopService = { onEvent(ChatUiEvent.StopVoiceControlService) }
+                        )
+
                         // Voice status banner (DEBUG: Always visible)
                         Column(
                             modifier = Modifier
@@ -461,6 +468,68 @@ fun VoiceFab(
                 },
                 modifier = Modifier.size(32.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun VoiceControlServiceBanner(
+    serviceState: VoiceControlServiceState,
+    onStartService: () -> Unit,
+    onStopService: () -> Unit
+) {
+    val backgroundColor = when (serviceState) {
+        VoiceControlServiceState.ActiveListening -> MaterialTheme.colorScheme.primaryContainer
+        VoiceControlServiceState.WakeWordMode -> MaterialTheme.colorScheme.secondaryContainer
+        VoiceControlServiceState.Stopped -> MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    val textColor = when (serviceState) {
+        VoiceControlServiceState.ActiveListening -> MaterialTheme.colorScheme.onPrimaryContainer
+        VoiceControlServiceState.WakeWordMode -> MaterialTheme.colorScheme.onSecondaryContainer
+        VoiceControlServiceState.Stopped -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val statusText = when (serviceState) {
+        VoiceControlServiceState.ActiveListening -> "Voice Control: Active Listening"
+        VoiceControlServiceState.WakeWordMode -> "Voice Control: Wake Word Mode"
+        VoiceControlServiceState.Stopped -> "Voice Control: Stopped"
+    }
+
+    Surface(
+        color = backgroundColor,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = statusText,
+                color = textColor,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (serviceState == VoiceControlServiceState.Stopped) {
+                Button(
+                    onClick = onStartService,
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("Start")
+                }
+            } else {
+                Button(
+                    onClick = onStopService,
+                    modifier = Modifier.padding(start = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Stop")
+                }
+            }
         }
     }
 }

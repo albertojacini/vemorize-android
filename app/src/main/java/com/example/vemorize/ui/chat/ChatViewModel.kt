@@ -56,8 +56,21 @@ class ChatViewModel @Inject constructor(
                     }
                 }
                 VoiceControlService.ACTION_STATE_CHANGED -> {
-                    val state = intent.getStringExtra(VoiceControlService.EXTRA_STATE)
-                    android.util.Log.d(TAG, "VoiceControlService state changed: $state")
+                    val stateString = intent.getStringExtra(VoiceControlService.EXTRA_STATE)
+                    android.util.Log.d(TAG, "VoiceControlService state changed: $stateString")
+
+                    // Map service state to UI state
+                    val uiState = when (stateString) {
+                        "ActiveListening" -> VoiceControlServiceState.ActiveListening
+                        "WakeWordMode" -> VoiceControlServiceState.WakeWordMode
+                        "Stopped" -> VoiceControlServiceState.Stopped
+                        else -> null
+                    }
+
+                    if (uiState != null) {
+                        val currentState = _uiState.value as? ChatUiState.Ready ?: return
+                        _uiState.value = currentState.copy(voiceControlServiceState = uiState)
+                    }
                 }
             }
         }
@@ -299,6 +312,8 @@ class ChatViewModel @Inject constructor(
             ChatUiEvent.StopVoiceOutput -> stopVoiceOutput()
             ChatUiEvent.ClearVoiceError -> clearVoiceError()
             ChatUiEvent.ClearTtsError -> clearTtsError()
+            ChatUiEvent.StartVoiceControlService -> startVoiceControlService()
+            ChatUiEvent.StopVoiceControlService -> stopVoiceControlService()
         }
     }
 
@@ -341,6 +356,24 @@ class ChatViewModel @Inject constructor(
     private fun clearTtsError() {
         val currentState = _uiState.value as? ChatUiState.Ready ?: return
         _uiState.value = currentState.copy(ttsError = null)
+    }
+
+    private fun startVoiceControlService() {
+        android.util.Log.d(TAG, "Starting VoiceControlService")
+        VoiceControlService.start(application)
+
+        // Update UI state to ActiveListening (will be confirmed by broadcast)
+        val currentState = _uiState.value as? ChatUiState.Ready ?: return
+        _uiState.value = currentState.copy(voiceControlServiceState = VoiceControlServiceState.ActiveListening)
+    }
+
+    private fun stopVoiceControlService() {
+        android.util.Log.d(TAG, "Stopping VoiceControlService")
+        VoiceControlService.stop(application)
+
+        // Update UI state to Stopped
+        val currentState = _uiState.value as? ChatUiState.Ready ?: return
+        _uiState.value = currentState.copy(voiceControlServiceState = VoiceControlServiceState.Stopped)
     }
 
     private fun sendMessage(message: String) {

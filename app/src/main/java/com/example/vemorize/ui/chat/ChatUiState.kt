@@ -18,9 +18,19 @@ sealed class ChatUiState {
         val isSpeaking: Boolean = false,
         val partialTranscript: String? = null,
         val voiceError: String? = null,
-        val ttsError: String? = null
+        val ttsError: String? = null,
+        val voiceControlServiceState: VoiceControlServiceState = VoiceControlServiceState.Stopped
     ) : ChatUiState()
     data class Error(val message: String) : ChatUiState()
+}
+
+/**
+ * State of the VoiceControlService
+ */
+enum class VoiceControlServiceState {
+    Stopped,
+    ActiveListening,
+    WakeWordMode
 }
 
 /**
@@ -36,4 +46,6 @@ sealed class ChatUiEvent {
     object StopVoiceOutput : ChatUiEvent()
     object ClearVoiceError : ChatUiEvent()
     object ClearTtsError : ChatUiEvent()
+    object StartVoiceControlService : ChatUiEvent()
+    object StopVoiceControlService : ChatUiEvent()
 }
