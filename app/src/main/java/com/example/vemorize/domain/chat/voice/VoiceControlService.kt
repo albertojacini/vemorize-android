@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -25,6 +26,9 @@ class VoiceControlService : LifecycleService() {
     private var voiceInputManager: VoiceInputManager? = null
     private var wakeWordDetector: PorcupineWakeWordDetector? = null
 
+    // Wake lock for keeping CPU awake during active listening
+    private var wakeLock: PowerManager.WakeLock? = null
+
     // Inactivity timer
     private val handler = Handler(Looper.getMainLooper())
     private var inactivityRunnable: Runnable? = null
@@ -33,8 +37,18 @@ class VoiceControlService : LifecycleService() {
         super.onCreate()
         Log.d(TAG, "VoiceControlService onCreate")
         createNotificationChannel()
+        initializeWakeLock()
         initializeVoiceInput()
         initializeWakeWordDetector()
+    }
+
+    private fun initializeWakeLock() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "VemorizeVoiceControl::WakeLock"
+        )
+        Log.d(TAG, "WakeLock initialized")
     }
 
     private fun initializeVoiceInput() {
@@ -142,16 +156,19 @@ class VoiceControlService : LifecycleService() {
         // Handle state-specific behavior
         when (newState) {
             is VoiceControlState.Stopped -> {
+                releaseWakeLock()
                 cancelInactivityTimer()
                 stopListening()
                 stopWakeWordDetection()
             }
             is VoiceControlState.ActiveListening -> {
+                acquireWakeLock()
                 stopWakeWordDetection()
                 startListening()
                 startInactivityTimer() // Start 60-second timer
             }
             is VoiceControlState.WakeWordMode -> {
+                releaseWakeLock()
                 cancelInactivityTimer()
                 stopListening()
                 startWakeWordDetection()
@@ -216,6 +233,7 @@ class VoiceControlService : LifecycleService() {
     private fun stopVoiceControl() {
         Log.d(TAG, "Stopping voice control service")
 
+        releaseWakeLock()
         cancelInactivityTimer()
         stopListening()
         stopWakeWordDetection()
@@ -270,6 +288,30 @@ class VoiceControlService : LifecycleService() {
             handler.removeCallbacks(it)
             inactivityRunnable = null
             Log.d(TAG, "Inactivity timer cancelled")
+        }
+    }
+
+    /**
+     * Acquire wake lock to keep CPU awake during active listening
+     */
+    private fun acquireWakeLock() {
+        wakeLock?.let {
+            if (!it.isHeld) {
+                it.acquire(10*60*1000L /*10 minutes max*/)
+                Log.d(TAG, "WakeLock acquired")
+            }
+        }
+    }
+
+    /**
+     * Release wake lock when not in active listening
+     */
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+                Log.d(TAG, "WakeLock released")
+            }
         }
     }
 
