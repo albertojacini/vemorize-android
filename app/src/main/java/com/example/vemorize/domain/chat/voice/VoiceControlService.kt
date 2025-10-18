@@ -48,8 +48,10 @@ class VoiceControlService : LifecycleService() {
                 if (!text.isNullOrBlank()) {
                     Log.d(TAG, "Recognized text: $text")
                     resetInactivityTimer() // Reset timer on voice activity
-                    // Auto-restart listening after recognition
+
+                    // Broadcast voice command
                     if (currentState is VoiceControlState.ActiveListening) {
+                        broadcastVoiceCommand(text)
                         voiceInputManager?.startListening()
                     }
                 }
@@ -128,6 +130,9 @@ class VoiceControlService : LifecycleService() {
 
         Log.d(TAG, "State transition: ${currentState::class.simpleName} -> ${newState::class.simpleName}")
         currentState = newState
+
+        // Broadcast state change
+        broadcastStateChange(newState)
 
         // Update notification
         val notification = createNotification(currentState)
@@ -294,6 +299,30 @@ class VoiceControlService : LifecycleService() {
             .build()
     }
 
+    /**
+     * Broadcast a recognized voice command
+     */
+    private fun broadcastVoiceCommand(text: String) {
+        Log.d(TAG, "Broadcasting voice command: $text")
+        val intent = Intent(ACTION_VOICE_COMMAND).apply {
+            putExtra(EXTRA_COMMAND_TEXT, text)
+            setPackage(packageName) // Only send to our app
+        }
+        sendBroadcast(intent)
+    }
+
+    /**
+     * Broadcast state change
+     */
+    private fun broadcastStateChange(state: VoiceControlState) {
+        Log.d(TAG, "Broadcasting state change: ${state::class.simpleName}")
+        val intent = Intent(ACTION_STATE_CHANGED).apply {
+            putExtra(EXTRA_STATE, state::class.simpleName)
+            setPackage(packageName) // Only send to our app
+        }
+        sendBroadcast(intent)
+    }
+
     companion object {
         private const val TAG = "VoiceControlService"
         private const val CHANNEL_ID = "voice_control_channel"
@@ -304,6 +333,14 @@ class VoiceControlService : LifecycleService() {
 
         const val ACTION_START = "com.example.vemorize.ACTION_START_VOICE_CONTROL"
         const val ACTION_STOP = "com.example.vemorize.ACTION_STOP_VOICE_CONTROL"
+
+        // Broadcast actions
+        const val ACTION_VOICE_COMMAND = "com.example.vemorize.ACTION_VOICE_COMMAND"
+        const val ACTION_STATE_CHANGED = "com.example.vemorize.ACTION_STATE_CHANGED"
+
+        // Broadcast extras
+        const val EXTRA_COMMAND_TEXT = "extra_command_text"
+        const val EXTRA_STATE = "extra_state"
 
         /**
          * Start the voice control service
