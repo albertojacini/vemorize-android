@@ -1,6 +1,10 @@
 package com.example.vemorize.ui.chat
 
 import android.app.Application
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +13,7 @@ import com.example.vemorize.data.chat.TtsException
 import com.example.vemorize.data.chat.TtsRepository
 import com.example.vemorize.data.courses.CoursesRepository
 import com.example.vemorize.domain.chat.ChatManager
+import com.example.vemorize.domain.chat.voice.VoiceControlService
 import com.example.vemorize.domain.chat.voice.VoiceInputManager
 import com.example.vemorize.domain.chat.voice.VoiceOutputManager
 import com.example.vemorize.domain.chat.model.ChatMode
@@ -39,8 +44,28 @@ class ChatViewModel @Inject constructor(
     private lateinit var voiceInputManager: VoiceInputManager
     private lateinit var voiceOutputManager: VoiceOutputManager
 
+    // Broadcast receiver for VoiceControlService
+    private val voiceControlReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                VoiceControlService.ACTION_VOICE_COMMAND -> {
+                    val command = intent.getStringExtra(VoiceControlService.EXTRA_COMMAND_TEXT)
+                    if (!command.isNullOrBlank()) {
+                        android.util.Log.d(TAG, "Received voice command from service: $command")
+                        processVoiceInput(command)
+                    }
+                }
+                VoiceControlService.ACTION_STATE_CHANGED -> {
+                    val state = intent.getStringExtra(VoiceControlService.EXTRA_STATE)
+                    android.util.Log.d(TAG, "VoiceControlService state changed: $state")
+                }
+            }
+        }
+    }
+
     init {
         initializeChat()
+        registerVoiceControlReceiver()
     }
 
     private fun initializeChat() {
@@ -241,6 +266,24 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    private fun registerVoiceControlReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(VoiceControlService.ACTION_VOICE_COMMAND)
+            addAction(VoiceControlService.ACTION_STATE_CHANGED)
+        }
+        application.registerReceiver(voiceControlReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        android.util.Log.d(TAG, "VoiceControlService broadcast receiver registered")
+    }
+
+    private fun unregisterVoiceControlReceiver() {
+        try {
+            application.unregisterReceiver(voiceControlReceiver)
+            android.util.Log.d(TAG, "VoiceControlService broadcast receiver unregistered")
+        } catch (e: IllegalArgumentException) {
+            android.util.Log.w(TAG, "Receiver was not registered", e)
+        }
+    }
+
     companion object {
         private const val TAG = "ChatViewModel"
     }
@@ -371,6 +414,9 @@ class ChatViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         android.util.Log.d(TAG, "ChatViewModel onCleared - cleaning up voice managers")
+
+        // Unregister broadcast receiver
+        unregisterVoiceControlReceiver()
 
         // Clean up voice managers
         if (::voiceInputManager.isInitialized) {
