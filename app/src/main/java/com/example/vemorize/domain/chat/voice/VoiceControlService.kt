@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -21,6 +23,10 @@ class VoiceControlService : LifecycleService() {
 
     private var currentState: VoiceControlState = VoiceControlState.Stopped
     private var voiceInputManager: VoiceInputManager? = null
+
+    // Inactivity timer
+    private val handler = Handler(Looper.getMainLooper())
+    private var inactivityRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -39,10 +45,31 @@ class VoiceControlService : LifecycleService() {
             voiceInputManager?.recognizedText?.collect { text ->
                 if (!text.isNullOrBlank()) {
                     Log.d(TAG, "Recognized text: $text")
+                    resetInactivityTimer() // Reset timer on voice activity
                     // Auto-restart listening after recognition
                     if (currentState is VoiceControlState.ActiveListening) {
                         voiceInputManager?.startListening()
                     }
+                }
+            }
+        }
+
+        // Observe partial results to reset inactivity timer
+        lifecycleScope.launch {
+            voiceInputManager?.partialText?.collect { text ->
+                if (!text.isNullOrBlank()) {
+                    Log.d(TAG, "Partial text: $text")
+                    resetInactivityTimer()
+                }
+            }
+        }
+
+        // Observe listening state to reset inactivity timer
+        lifecycleScope.launch {
+            voiceInputManager?.isListening?.collect { isListening ->
+                if (isListening) {
+                    Log.d(TAG, "Voice recognition started")
+                    resetInactivityTimer()
                 }
             }
         }
@@ -63,6 +90,7 @@ class VoiceControlService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "VoiceControlService onDestroy")
+        cancelInactivityTimer()
         stopVoiceControl()
     }
 
@@ -92,13 +120,17 @@ class VoiceControlService : LifecycleService() {
         // Handle state-specific behavior
         when (newState) {
             is VoiceControlState.Stopped -> {
+                cancelInactivityTimer()
                 stopListening()
             }
             is VoiceControlState.ActiveListening -> {
                 startListening()
+                startInactivityTimer() // Start 60-second timer
             }
             is VoiceControlState.WakeWordMode -> {
-                // Will be implemented in next step
+                cancelInactivityTimer()
+                stopListening()
+                // Wake word detection will be implemented in next step
                 Log.d(TAG, "WakeWordMode not yet implemented")
             }
         }
@@ -121,6 +153,7 @@ class VoiceControlService : LifecycleService() {
     private fun stopVoiceControl() {
         Log.d(TAG, "Stopping voice control service")
 
+        cancelInactivityTimer()
         stopListening()
         voiceInputManager?.destroy()
         voiceInputManager = null
@@ -130,6 +163,46 @@ class VoiceControlService : LifecycleService() {
         stopSelf()
 
         Log.d(TAG, "Voice control service stopped")
+    }
+
+    /**
+     * Start the 60-second inactivity timer
+     * When it expires, transition to WakeWordMode
+     */
+    private fun startInactivityTimer() {
+        cancelInactivityTimer() // Cancel any existing timer
+
+        inactivityRunnable = Runnable {
+            Log.d(TAG, "Inactivity timeout reached - transitioning to WakeWordMode")
+            transitionToState(VoiceControlState.WakeWordMode)
+        }
+
+        handler.postDelayed(inactivityRunnable!!, INACTIVITY_TIMEOUT_MS)
+        Log.d(TAG, "Inactivity timer started (${INACTIVITY_TIMEOUT_MS / 1000}s)")
+    }
+
+    /**
+     * Reset the inactivity timer (cancel and restart)
+     * Call this on any voice activity
+     */
+    private fun resetInactivityTimer() {
+        if (currentState !is VoiceControlState.ActiveListening) {
+            return // Only reset timer in ACTIVE_LISTENING state
+        }
+
+        Log.d(TAG, "Resetting inactivity timer")
+        startInactivityTimer()
+    }
+
+    /**
+     * Cancel the inactivity timer
+     */
+    private fun cancelInactivityTimer() {
+        inactivityRunnable?.let {
+            handler.removeCallbacks(it)
+            inactivityRunnable = null
+            Log.d(TAG, "Inactivity timer cancelled")
+        }
     }
 
     private fun createNotificationChannel() {
@@ -162,6 +235,9 @@ class VoiceControlService : LifecycleService() {
         private const val TAG = "VoiceControlService"
         private const val CHANNEL_ID = "voice_control_channel"
         private const val NOTIFICATION_ID = 1001
+
+        // 60-second inactivity timeout before transitioning to WakeWordMode
+        private const val INACTIVITY_TIMEOUT_MS = 60_000L
 
         const val ACTION_START = "com.example.vemorize.ACTION_START_VOICE_CONTROL"
         const val ACTION_STOP = "com.example.vemorize.ACTION_STOP_VOICE_CONTROL"
