@@ -3,27 +3,49 @@ package com.example.vemorize.domain.chat.voice
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.example.vemorize.R
+import kotlinx.coroutines.launch
 
 /**
  * Foreground service for voice control with screen off
  * Manages voice recognition and wake word detection states
  */
-class VoiceControlService : Service() {
+class VoiceControlService : LifecycleService() {
 
     private var currentState: VoiceControlState = VoiceControlState.Stopped
+    private var voiceInputManager: VoiceInputManager? = null
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "VoiceControlService onCreate")
         createNotificationChannel()
+        initializeVoiceInput()
+    }
+
+    private fun initializeVoiceInput() {
+        voiceInputManager = VoiceInputManager(applicationContext).apply {
+            initialize()
+        }
+
+        // Observe recognized text and auto-restart listening
+        lifecycleScope.launch {
+            voiceInputManager?.recognizedText?.collect { text ->
+                if (!text.isNullOrBlank()) {
+                    Log.d(TAG, "Recognized text: $text")
+                    // Auto-restart listening after recognition
+                    if (currentState is VoiceControlState.ActiveListening) {
+                        voiceInputManager?.startListening()
+                    }
+                }
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -37,10 +59,6 @@ class VoiceControlService : Service() {
         return START_STICKY
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        // This is a started service, not a bound service
-        return null
-    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -51,15 +69,61 @@ class VoiceControlService : Service() {
     private fun startVoiceControl() {
         Log.d(TAG, "Starting voice control service")
 
-        // Start foreground with notification
+        // Transition to ActiveListening state
+        transitionToState(VoiceControlState.ActiveListening)
+
+        Log.d(TAG, "Voice control service started in ACTIVE_LISTENING state")
+    }
+
+    private fun transitionToState(newState: VoiceControlState) {
+        if (!currentState.canTransitionTo(newState)) {
+            Log.w(TAG, "Invalid state transition from ${currentState::class.simpleName} to ${newState::class.simpleName}")
+            return
+        }
+
+        Log.d(TAG, "State transition: ${currentState::class.simpleName} -> ${newState::class.simpleName}")
+        currentState = newState
+
+        // Update notification
+        val notification = createNotification(currentState)
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
+
+        // Handle state-specific behavior
+        when (newState) {
+            is VoiceControlState.Stopped -> {
+                stopListening()
+            }
+            is VoiceControlState.ActiveListening -> {
+                startListening()
+            }
+            is VoiceControlState.WakeWordMode -> {
+                // Will be implemented in next step
+                Log.d(TAG, "WakeWordMode not yet implemented")
+            }
+        }
+    }
+
+    private fun startListening() {
+        Log.d(TAG, "Starting voice recognition")
+        // Start foreground if not already
         val notification = createNotification(currentState)
         startForeground(NOTIFICATION_ID, notification)
 
-        Log.d(TAG, "Voice control service started in STOPPED state")
+        voiceInputManager?.startListening()
+    }
+
+    private fun stopListening() {
+        Log.d(TAG, "Stopping voice recognition")
+        voiceInputManager?.stopListening()
     }
 
     private fun stopVoiceControl() {
         Log.d(TAG, "Stopping voice control service")
+
+        stopListening()
+        voiceInputManager?.destroy()
+        voiceInputManager = null
 
         currentState = VoiceControlState.Stopped
         stopForeground(STOP_FOREGROUND_REMOVE)
