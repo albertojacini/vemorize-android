@@ -1,0 +1,51 @@
+package com.example.vemorize.ui.chat
+
+import com.example.vemorize.domain.chat.model.ChatMode
+import com.example.vemorize.domain.courses.Course
+
+/**
+ * UI state for chat screen
+ */
+sealed class ChatUiState {
+    object Loading : ChatUiState()
+    data class Ready(
+        val course: Course?,
+        val voiceExchangeMessages: List<VoiceExchangeMessage> = emptyList(),
+        val currentMode: ChatMode = ChatMode.IDLE,
+        val isProcessing: Boolean = false,
+        val userInput: String = "",
+        val isListening: Boolean = false,
+        val isSpeaking: Boolean = false,
+        val partialTranscript: String? = null,
+        val voiceError: String? = null,
+        val ttsError: String? = null,
+        val voiceControlServiceState: VoiceControlServiceState = VoiceControlServiceState.Stopped
+    ) : ChatUiState()
+    data class Error(val message: String) : ChatUiState()
+}
+
+/**
+ * State of the VoiceControlService
+ */
+enum class VoiceControlServiceState {
+    Stopped,
+    ActiveListening,
+    WakeWordMode
+}
+
+/**
+ * UI events from the screen
+ */
+sealed class ChatUiEvent {
+    data class SendMessage(val message: String) : ChatUiEvent()
+    data class UpdateInput(val input: String) : ChatUiEvent()
+    data class SwitchMode(val mode: ChatMode) : ChatUiEvent()
+    object NavigateNext : ChatUiEvent()
+    object NavigatePrevious : ChatUiEvent()
+    object ToggleVoiceListening : ChatUiEvent()
+    object StopVoiceOutput : ChatUiEvent()
+    object ClearVoiceError : ChatUiEvent()
+    object ClearTtsError : ChatUiEvent()
+    object StartVoiceControlService : ChatUiEvent()
+    object StopVoiceControlService : ChatUiEvent()
+}

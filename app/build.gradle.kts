@@ -1,0 +1,141 @@
+import java.util.Properties
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+}
+
+// Load properties from local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+
+// Helper function to get properties with fallback
+fun getLocalProperty(key: String, defaultValue: String = ""): String {
+    return localProperties.getProperty(key) ?: defaultValue
+}
+
+android {
+    namespace = "com.example.vemorize"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "com.example.vemorize"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Read from local.properties
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${getLocalProperty("SUPABASE_URL", "http://10.0.2.2:54321")}\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_ANON_KEY",
+            "\"${getLocalProperty("SUPABASE_ANON_KEY", "")}\""
+        )
+    }
+
+    buildTypes {
+        debug {
+            // Debug uses local development settings from local.properties
+            // Already configured in defaultConfig
+        }
+
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            // Production settings - override with production values if available
+            val prodUrl = getLocalProperty("SUPABASE_URL_PRODUCTION", "")
+            val prodKey = getLocalProperty("SUPABASE_ANON_KEY_PRODUCTION", "")
+
+            if (prodUrl.isNotEmpty() && prodKey.isNotEmpty()) {
+                buildConfigField("String", "SUPABASE_URL", "\"$prodUrl\"")
+                buildConfigField("String", "SUPABASE_ANON_KEY", "\"$prodKey\"")
+            }
+            // If production values not set, it will use the debug values from defaultConfig
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    buildFeatures {
+        compose = true
+        viewBinding = true  // Keep temporarily during migration
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation("androidx.lifecycle:lifecycle-service:2.8.0")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
+
+    // Supabase
+    implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.gotrue)
+    implementation(libs.ktor.client.android)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Porcupine Wake Word Detection
+    implementation("ai.picovoice:porcupine-android:3.0.0")
+
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+}
